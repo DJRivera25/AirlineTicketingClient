@@ -31,6 +31,9 @@ import UserManagement from "./pages/UserManagement";
 import ManageFlightDetails from "./pages/ManageFlightDetails";
 import NotFound from "./pages/NotFound";
 
+// Loader Component
+import FullPageLoader from "./components/FullPageLoader";
+
 function AppContent({ isAdmin }) {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
@@ -47,7 +50,7 @@ function AppContent({ isAdmin }) {
     <>
       {!isAdminRoute && <Navbar />}
 
-      {/* Apply top padding ONLY on user pages to avoid content being hidden under fixed navbar */}
+      {/* Padding for fixed navbar */}
       <div className={!isAdminRoute ? "pt-24 px-4 sm:px-6 md:px-8" : ""}>
         <Routes>
           {/* Public/User Routes */}
@@ -81,14 +84,21 @@ function AppContent({ isAdmin }) {
 function App() {
   const { user } = useContext(UserContext);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setIsAdmin(!!user?.isAdmin);
   }, [user]);
 
+  // Simulate a loading delay for better UX (especially on hard reload)
+  useEffect(() => {
+    const timeout = setTimeout(() => setLoading(false), 1200);
+    return () => clearTimeout(timeout);
+  }, []);
+
   return (
     <Router>
-      <AppContent isAdmin={isAdmin} />
+      {loading ? <FullPageLoader /> : <AppContent isAdmin={isAdmin} />}
       <ToastContainer
         position="top-right"
         autoClose={2000}
