@@ -1,6 +1,6 @@
 // src/components/FullPageLoader.js
 import React from "react";
-import logo from "../assets/logo4.png";
+import logo from "../assets/logo3.png";
 
 const FullPageLoader = () => {
   return (

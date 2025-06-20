@@ -32,7 +32,7 @@ import ManageFlightDetails from "./pages/ManageFlightDetails";
 import NotFound from "./pages/NotFound";
 
 // Loader Component
-import FullPageLoader from "./components/FullPageLoader";
+import FullPageLoader from "./pages/FullPageLoader";
 
 function AppContent({ isAdmin }) {
   const location = useLocation();
