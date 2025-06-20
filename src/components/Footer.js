@@ -1,5 +1,6 @@
 import { Facebook, Instagram, Twitter, Send } from "lucide-react";
 import { Link } from "react-router-dom";
+import logo from "../assets/logo4text.png"; // ✅ Import your logo
 
 const Footer = () => {
   return (
@@ -8,8 +9,8 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
         {/* Brand */}
         <div>
-          <h2 className="text-3xl font-extrabold text-yellow-300 tracking-wide">Tiket Lakwatsero</h2>
-          <p className="mt-4 text-sm text-violet-300 leading-relaxed">
+          <img src={logo} alt="Tiket Lakwatsero Logo" className="h-10 mb-4" /> {/* ✅ Logo image here */}
+          <p className="text-sm text-violet-300 leading-relaxed">
             Book smarter. Fly farther. Your Filipino gateway to world-class destinations.
           </p>
         </div>
@@ -71,7 +72,10 @@ const Footer = () => {
 
       {/* Bottom Bar */}
       <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row justify-between items-center text-sm text-violet-400">
-        <p>© {new Date().getFullYear()} Tiket Lakwatsero. All rights reserved.</p>
+        <p>
+          © {new Date().getFullYear()} <img src={logo} alt="Logo" className="inline h-5 align-middle" />. All rights
+          reserved.
+        </p>
         <div className="flex gap-4 mt-3 sm:mt-0">
           {[Facebook, Instagram, Twitter].map((Icon, idx) => (
             <a key={idx} href="#" className="hover:text-yellow-300 transition">
