@@ -1,6 +1,7 @@
 import React from "react";
 import "tailwindcss/tailwind.css";
 import ticketBg from "../assets/ticket-bg.png";
+import logo from "../assets/logo3text.png"; // ✅ Import your logo
 
 const ETicket = ({ booking }) => {
   const { passengers, departureFlight, returnFlight, tripType, bookedAt, _id } = booking;
@@ -23,7 +24,7 @@ const ETicket = ({ booking }) => {
           {/* Header */}
           <div className="flex justify-between items-center border-b border-gray-300 pb-3">
             <div>
-              <h2 className="text-2xl font-bold text-violet-700 tracking-widest uppercase">✈ Tiket Lakwatsero</h2>
+              <img src={logo} alt="Tiket Lakwatsero Logo" className="h-8" /> {/* ✅ Logo here */}
               <p className="text-sm italic text-gray-600 mt-1">Boarding Pass</p>
             </div>
             <div className="text-right text-sm space-y-1">
