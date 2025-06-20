@@ -1,7 +1,5 @@
 import { ArrowRightIcon } from "@heroicons/react/24/solid";
 import { PlaneTakeoff } from "lucide-react";
-import { Link } from "react-router-dom";
-import bgFlight from "../assets/bg-flight.png";
 
 const HeroSection = () => {
   return (

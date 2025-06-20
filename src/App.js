@@ -28,10 +28,6 @@ import AdminDashboard from "./pages/AdminDashboard";
 import ManageFlights from "./pages/ManageFlights";
 import ManageBookings from "./pages/ManageBookings";
 import UserManagement from "./pages/UserManagement";
-import PaymentsReports from "./pages/PaymentsReports";
-import PromoManagement from "./pages/PromoManagement";
-import ContentManagement from "./pages/ContentManagement";
-import SecurityLogs from "./pages/SecurityLogs";
 import ManageFlightDetails from "./pages/ManageFlightDetails";
 import NotFound from "./pages/NotFound";
 
@@ -44,10 +40,6 @@ function AppContent({ isAdmin }) {
     { path: "/admin/flights", element: <ManageFlights /> },
     { path: "/admin/bookings", element: <ManageBookings /> },
     { path: "/admin/users", element: <UserManagement /> },
-    { path: "/admin/payments", element: <PaymentsReports /> },
-    { path: "/admin/promos", element: <PromoManagement /> },
-    { path: "/admin/content", element: <ContentManagement /> },
-    { path: "/admin/security", element: <SecurityLogs /> },
     { path: "/admin/flights/:id", element: <ManageFlightDetails /> },
   ];
 
