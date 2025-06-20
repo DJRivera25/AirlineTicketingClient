@@ -1,15 +1,23 @@
 import { useState } from "react";
 import { Search, CalendarDays, PlaneTakeoff, PlaneLanding, Briefcase, RefreshCcw } from "lucide-react";
+import DatePicker from "react-datepicker";
+import CustomDateInput from "./CustomDateInput";
 
 const FlightSearchForm = ({ form, handleChange, handleSearch }) => {
   const [tripType, setTripType] = useState("round-trip");
+
+  const handleDateChange = (name, date) => {
+    handleChange({ target: { name, value: date.toISOString().split("T")[0] } });
+  };
+
+  const departureDate = form.departure ? new Date(form.departure) : null;
+  const returnDate = form.return ? new Date(form.return) : null;
 
   return (
     <section
       className="relative z-10 px-4 sm:px-8 md:px-16 max-w-screen-xl mx-auto -mt-20 animate-fadeInUp"
       id="searchFlight"
     >
-      {/* Animated background blur */}
       <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-violet-800 to-violet-700 opacity-10 animate-pulse-slow" />
 
       <div className="relative bg-white/80 backdrop-blur-2xl border border-violet-100 rounded-3xl shadow-2xl p-8 sm:p-12 lg:p-14 space-y-10 transition-all duration-300 hover:shadow-violet-400/30">
@@ -45,42 +53,44 @@ const FlightSearchForm = ({ form, handleChange, handleSearch }) => {
               </select>
             </div>
 
-            {/* Departure Date */}
+            {/* Departure Date (Date Picker) */}
             <div>
               <label className="flex items-center text-sm font-medium text-gray-700 gap-1 mb-1">
                 <CalendarDays size={16} className="text-violet-500" />
                 Departure Date
               </label>
-              <input
-                name="departure"
-                value={form.departure}
-                onChange={handleChange}
-                type="date"
-                required
-                className="w-full border border-gray-300 rounded-xl p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-violet-500 shadow-inner"
+
+              <DatePicker
+                selected={form.departure}
+                onChange={(date) => handleChange({ target: { name: "departure", value: date } })}
+                customInput={<CustomDateInput placeholder="Select departure date" />}
+                dateFormat="yyyy-MM-dd"
+                minDate={new Date()}
+                wrapperClassName="w-full"
               />
             </div>
 
-            {/* Return Date (only for round trip) */}
+            {/* Return Date (Only show if Round Trip) */}
             {tripType === "round-trip" && (
               <div>
                 <label className="flex items-center text-sm font-medium text-gray-700 gap-1 mb-1">
                   <CalendarDays size={16} className="text-violet-500" />
                   Return Date
                 </label>
-                <input
-                  name="return"
-                  value={form.return}
-                  onChange={handleChange}
-                  type="date"
-                  required
-                  className="w-full border border-gray-300 rounded-xl p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-violet-500 shadow-inner"
+
+                <DatePicker
+                  selected={form.return}
+                  onChange={(date) => handleChange({ target: { name: "return", value: date } })}
+                  customInput={<CustomDateInput placeholder="Select return date" />}
+                  dateFormat="yyyy-MM-dd"
+                  minDate={form.departure}
+                  wrapperClassName="w-full"
                 />
               </div>
             )}
           </div>
 
-          {/* Row 2 */}
+          {/* Row 2 (unchanged) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* From */}
             <div>
