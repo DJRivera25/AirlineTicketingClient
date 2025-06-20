@@ -29,7 +29,7 @@ export const UserProvider = ({ children }) => {
     if (!authToken) return unsetUser();
 
     try {
-      const res = await axios.get("http://localhost:4000/users/details", {
+      const res = await axios.get(`${process.env.REACT_APP_API_BASEURL}/users/details`, {
         headers: {
           Authorization: `Bearer ${authToken}`,
         },

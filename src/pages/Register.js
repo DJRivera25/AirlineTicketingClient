@@ -52,7 +52,7 @@ const Register = () => {
 
     setLoading(true);
     try {
-      await axios.post("http://localhost:4000/users/register", {
+      await axios.post(`${process.env.REACT_APP_API_BASEURL}/users/register`, {
         fullName: name,
         email,
         mobileNo,
@@ -184,7 +184,7 @@ const Register = () => {
         </div>
 
         <button
-          onClick={() => (window.location.href = "http://localhost:4000/users/google")}
+          onClick={() => (window.location.href = `${process.env.REACT_APP_API_BASEURL}/users/google`)}
           className="w-full flex items-center justify-center border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 py-2 rounded transition"
           aria-label="Sign Up with Google"
         >

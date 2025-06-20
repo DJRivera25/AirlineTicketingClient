@@ -1,6 +1,7 @@
 {
-  "name": "client",
-  "version": "0.1.0",
+  "name": "tiket-lakwatsero-frontend",
+  "version": "1.0.0",
+  "description": "Backend server for Tiket Lakwatsero airline ticketing",
   "private": true,
   "dependencies": {
     "@headlessui/react": "^2.2.4",

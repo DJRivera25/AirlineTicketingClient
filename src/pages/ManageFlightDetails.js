@@ -18,7 +18,7 @@ const ManageFlightDetails = () => {
   useEffect(() => {
     const fetchFlightDetails = async () => {
       try {
-        const { data } = await axios.get(`http://localhost:4000/flights/${id}`, {
+        const { data } = await axios.get(`${process.env.REACT_APP_API_BASEURL}/flights/${id}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -37,7 +37,7 @@ const ManageFlightDetails = () => {
   useEffect(() => {
     const fetchSeats = async () => {
       try {
-        const res = await axios.get(`http://localhost:4000/seats/flight/${id}`);
+        const res = await axios.get(`${process.env.REACT_APP_API_BASEURL}/seats/flight/${id}`);
         setSeats(res.data);
       } catch (err) {
         console.error("Failed to fetch seats:", err);
@@ -50,7 +50,7 @@ const ManageFlightDetails = () => {
   const handleSeatClick = async (seatId) => {
     try {
       const { data } = await axios.put(
-        `http://localhost:4000/seats/${seatId}/toggle`,
+        `${process.env.REACT_APP_API_BASEURL}/seats/${seatId}/toggle`,
         {},
         {
           headers: {

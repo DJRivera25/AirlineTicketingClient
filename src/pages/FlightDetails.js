@@ -30,7 +30,7 @@ const FlightDetails = () => {
   useEffect(() => {
     const fetchFlight = async () => {
       try {
-        const res = await axios.get(`http://localhost:4000/flights/${id}`);
+        const res = await axios.get(`${process.env.REACT_APP_API_BASEURL}/flights/${id}`);
         setFlight(res.data);
       } catch (err) {
         setError("Unable to load flight details.");

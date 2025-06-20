@@ -8,7 +8,7 @@ export const FlightsProvider = ({ children }) => {
   const [flights, setFlights] = useState([]);
 
   const fetchFlights = async (page = 1, limit = 5, search = "") => {
-    const res = await axios.get("http://localhost:4000/flights", {
+    const res = await axios.get(`${process.env.REACT_APP_API_BASEURL}/flights`, {
       params: {
         page,
         limit,
@@ -21,7 +21,7 @@ export const FlightsProvider = ({ children }) => {
   };
 
   const addFlight = async (data) => {
-    const res = await axios.post("http://localhost:4000/flights", data, {
+    const res = await axios.post(`${process.env.REACT_APP_API_BASEURL}/flights`, data, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -30,7 +30,7 @@ export const FlightsProvider = ({ children }) => {
   };
 
   const deleteFlight = async (id) => {
-    await axios.delete(`http://localhost:4000/flights/${id}`, {
+    await axios.delete(`${process.env.REACT_APP_API_BASEURL}/flights/${id}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },

@@ -23,14 +23,14 @@ const BookingPage = () => {
   useEffect(() => {
     const fetch = async () => {
       try {
-        const oFlight = await axios.get(`http://localhost:4000/flights/${outboundId}`);
-        const oSeats = await axios.get(`http://localhost:4000/seats/flight/${outboundId}`);
+        const oFlight = await axios.get(`${process.env.REACT_APP_API_BASEURL}/flights/${outboundId}`);
+        const oSeats = await axios.get(`${process.env.REACT_APP_API_BASEURL}/seats/flight/${outboundId}`);
         setOutboundFlight(oFlight.data);
         setoutboundSeatNumbers(oSeats.data);
 
         if (returnId) {
-          const rFlight = await axios.get(`http://localhost:4000/flights/${returnId}`);
-          const rSeats = await axios.get(`http://localhost:4000/seats/flight/${returnId}`);
+          const rFlight = await axios.get(`${process.env.REACT_APP_API_BASEURL}/flights/${returnId}`);
+          const rSeats = await axios.get(`${process.env.REACT_APP_API_BASEURL}/seats/flight/${returnId}`);
           setReturnFlight(rFlight.data);
           setreturnSeatNumbers(rSeats.data);
         }
@@ -137,7 +137,7 @@ const BookingPage = () => {
         })),
       };
 
-      const response = await axios.post("http://localhost:4000/bookings", bookingData, {
+      const response = await axios.post(`${process.env.REACT_APP_API_BASEURL}/bookings`, bookingData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },

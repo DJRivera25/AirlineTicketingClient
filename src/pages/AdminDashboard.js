@@ -16,16 +16,16 @@ const AdminDashboard = () => {
     const fetchData = async () => {
       try {
         const [bookingsRes, usersRes, flightsRes, passengersRes] = await Promise.all([
-          axios.get("http://localhost:4000/bookings/", {
+          axios.get(`${process.env.REACT_APP_API_BASEURL}/bookings/`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get("http://localhost:4000/users/all", {
+          axios.get(`${process.env.REACT_APP_API_BASEURL}/users/all`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get("http://localhost:4000/flights/", {
+          axios.get(`${process.env.REACT_APP_API_BASEURL}/flights/`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get("http://localhost:4000/passengers/all", {
+          axios.get(`${process.env.REACT_APP_API_BASEURL}/passengers/all`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);

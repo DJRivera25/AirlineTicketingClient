@@ -22,7 +22,7 @@ const EditFlightModal = ({ isOpen, onClose, flightData, onSave, id }) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.put(`http://localhost:4000/flights/${id}`, formData, {
+      const res = await axios.put(`${process.env.REACT_APP_API_BASEURL}/flights/${id}`, formData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },

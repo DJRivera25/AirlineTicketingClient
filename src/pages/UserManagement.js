@@ -28,7 +28,7 @@ const UserManagement = () => {
         limit: USERS_PER_PAGE,
       });
 
-      const res = await axios.get(`http://localhost:4000/users/all?${params}`, {
+      const res = await axios.get(`${process.env.REACT_APP_API_BASEURL}/users/all?${params}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -50,7 +50,7 @@ const UserManagement = () => {
     toast.success("Role updated successfully");
 
     // Optional: send role update to backend
-    // axios.put(`http://localhost:4000/users/${id}/role`, { role: newRole }, { headers: { Authorization: `Bearer ${token}` } });
+    // axios.put(`${process.env.REACT_APP_API_BASEURL}/users/${id}/role`, { role: newRole }, { headers: { Authorization: `Bearer ${token}` } });
   };
 
   const handleDelete = (id) => {
@@ -58,7 +58,7 @@ const UserManagement = () => {
     toast.success("User deleted");
 
     // Optional: send delete request to backend
-    // axios.delete(`http://localhost:4000/users/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+    // axios.delete(`${process.env.REACT_APP_API_BASEURL}/users/${id}`, { headers: { Authorization: `Bearer ${token}` } });
   };
 
   const toggleSort = (key) => {

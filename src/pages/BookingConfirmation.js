@@ -14,7 +14,7 @@ const BookingConfirmation = () => {
   useEffect(() => {
     const fetchBooking = async () => {
       try {
-        const res = await axios.get(`http://localhost:4000/bookings/${bookingId}`, {
+        const res = await axios.get(`${process.env.REACT_APP_API_BASEURL}/bookings/${bookingId}`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         setBooking(res.data);

@@ -33,7 +33,7 @@ const AccountPage = () => {
       try {
         setLoading(true);
         const res = await axios.post(
-          "http://localhost:4000/bookings/my-bookings",
+          `${process.env.REACT_APP_API_BASEURL}/bookings/my-bookings`,
           { email: user.email },
           {
             headers: {
@@ -76,7 +76,7 @@ const AccountPage = () => {
     } else if (type === "Cancel") {
       axios
         .patch(
-          `http://localhost:4000/bookings/${bookingId}/status`,
+          `${process.env.REACT_APP_API_BASEURL}/bookings/${bookingId}/status`,
           {},
           {
             headers: {

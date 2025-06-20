@@ -10,7 +10,7 @@ export const SearchProvider = ({ children }) => {
 
   const searchFlights = async (query) => {
     try {
-      const res = await axios.post("http://localhost:4000/flights/search", query); // ✅ send in body
+      const res = await axios.post(`${process.env.REACT_APP_API_BASEURL}/flights/search`, query); // ✅ send in body
       setSearchResults(res.data);
       setSearchQuery(query);
     } catch (error) {

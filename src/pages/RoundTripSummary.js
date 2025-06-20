@@ -34,13 +34,13 @@ const RoundTripSummary = () => {
   useEffect(() => {
     if (selectedOutbound?._id) {
       axios
-        .get(`http://localhost:4000/seats/flight/${selectedOutbound._id}`)
+        .get(`${process.env.REACT_APP_API_BASEURL}/seats/flight/${selectedOutbound._id}`)
         .then((res) => setoutboundSeatNumberMap(res.data))
         .catch(() => setoutboundSeatNumberMap([]));
     }
     if (selectedReturn?._id) {
       axios
-        .get(`http://localhost:4000/seats/flight/${selectedReturn._id}`)
+        .get(`${process.env.REACT_APP_API_BASEURL}/seats/flight/${selectedReturn._id}`)
         .then((res) => setreturnSeatNumberMap(res.data))
         .catch(() => setreturnSeatNumberMap([]));
     }

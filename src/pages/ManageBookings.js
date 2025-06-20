@@ -11,7 +11,7 @@ const ManageBookings = () => {
 
   const fetchBookings = async () => {
     try {
-      const res = await axios.get(`http://localhost:4000/bookings`, {
+      const res = await axios.get(`${process.env.REACT_APP_API_BASEURL}/bookings`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setBookings(res.data);

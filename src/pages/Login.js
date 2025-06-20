@@ -31,7 +31,7 @@ const GoogleIcon = () => (
 const Login = () => {
   const { unsetUser, setUser, setToken } = useContext(UserContext);
   const navigate = useNavigate();
-  const baseUrl = `http://localhost:4000`;
+  const baseUrl = process.env.REACT_APP_API_BASEURL;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

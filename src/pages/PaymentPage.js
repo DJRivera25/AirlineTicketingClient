@@ -25,7 +25,7 @@ const PaymentPage = () => {
   useEffect(() => {
     const fetchBooking = async () => {
       try {
-        const res = await axios.get(`http://localhost:4000/bookings/${bookingId}`, {
+        const res = await axios.get(`${process.env.REACT_APP_API_BASEURL}/bookings/${bookingId}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -43,7 +43,7 @@ const PaymentPage = () => {
     const createPaymentIntent = async () => {
       try {
         const res = await axios.post(
-          "http://localhost:4000/payments/create-payment-intent",
+          `${process.env.REACT_APP_API_BASEURL}/payments/create-payment-intent`,
           {
             amount: booking.totalPrice * 100, // in cents
           },
@@ -125,7 +125,7 @@ const PaymentPage = () => {
         const paymentIntent = result.paymentIntent;
         const charge = paymentIntent?.charges?.data?.[0]; // safely access the charge object
         await axios.post(
-          "http://localhost:4000/payments/record",
+          `${process.env.REACT_APP_API_BASEURL}/payments/record`,
           {
             booking: bookingId,
             method: "card",
@@ -146,7 +146,7 @@ const PaymentPage = () => {
 
         // 2. Update booking status to "paid"
         await axios.patch(
-          `http://localhost:4000/bookings/${bookingId}/pay`,
+          `${process.env.REACT_APP_API_BASEURL}/bookings/${bookingId}/pay`,
           {}, // optional payload depending on your backend
           {
             headers: {

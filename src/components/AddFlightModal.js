@@ -29,7 +29,7 @@ const AddFlightModal = ({ isOpen, onClose, onSubmit }) => {
     setLoading(true);
 
     try {
-      const res = await axios.post("http://localhost:4000/flights", formData, {
+      const res = await axios.post(`${process.env.REACT_APP_API_BASEURL}/flights`, formData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
