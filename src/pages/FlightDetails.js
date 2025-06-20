@@ -2,44 +2,51 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Plane, Clock, MapPin, Briefcase, Info, ArrowLeft, ArrowRight } from "lucide-react";
+import SeatMap from "../components/SeatMap";
 
 const FlightDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
   const [flight, setFlight] = useState(null);
+  const [seatMap, setSeatMap] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const goBackToSearch = () => {
-    navigate("/flights");
-  };
-
-  const continueToBooking = () => {
-    navigate(`/booking/${id}`);
-  };
+  const goBackToSearch = () => navigate("/flights");
+  const continueToBooking = () => navigate(`/booking/${id}`);
 
   const calculateDuration = (departure, arrival) => {
     const dep = new Date(departure);
     const arr = new Date(arrival);
-    const diffMs = arr - dep;
-    const hours = Math.floor(diffMs / (1000 * 60 * 60));
-    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    const diff = arr - dep;
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     return `${hours}h ${minutes}m`;
   };
 
   useEffect(() => {
-    const fetchFlight = async () => {
+    const fetchFlightDetails = async () => {
       try {
         const res = await axios.get(`${process.env.REACT_APP_API_BASEURL}/flights/${id}`);
         setFlight(res.data);
       } catch (err) {
         setError("Unable to load flight details.");
-      } finally {
-        setLoading(false);
       }
     };
 
-    fetchFlight();
+    const fetchSeatMap = async () => {
+      try {
+        const res = await axios.get(`${process.env.REACT_APP_API_BASEURL}/seats/flight/${id}`);
+        setSeatMap(res.data);
+      } catch (err) {
+        setSeatMap([]);
+      }
+    };
+
+    fetchFlightDetails();
+    fetchSeatMap();
+    setLoading(false);
   }, [id]);
 
   if (loading) return <p className="text-center text-gray-500">Loading flight details...</p>;
@@ -95,32 +102,7 @@ const FlightDetails = () => {
         </p>
       </section>
 
-      {/* Baggage */}
-      <section className="bg-white p-6 shadow-lg rounded-xl border space-y-2">
-        <div className="flex items-center gap-2 text-violet-600 font-semibold text-lg">
-          <Briefcase size={18} /> Baggage Allowance
-        </div>
-        <ul className="list-disc ml-6 space-y-1 text-gray-700">
-          <li>1 carry-on bag (7kg max)</li>
-          <li>1 checked baggage (up to 20kg)</li>
-          <li>Additional baggage fees apply beyond limit</li>
-        </ul>
-      </section>
-
-      {/* In-flight Services */}
-      <section className="bg-white p-6 shadow-lg rounded-xl border space-y-2">
-        <div className="flex items-center gap-2 text-violet-600 font-semibold text-lg">
-          <Info size={18} /> In-flight Services
-        </div>
-        <ul className="list-disc ml-6 space-y-1 text-gray-700">
-          <li>Complimentary meals and beverages</li>
-          <li>Wi-Fi (limited availability)</li>
-          <li>Entertainment system with movies/music</li>
-          <li>Power outlets at each seat</li>
-        </ul>
-      </section>
-
-      {/* Aircraft */}
+      {/* Aircraft Info */}
       <section className="bg-white p-6 shadow-lg rounded-xl border space-y-2">
         <h2 className="text-lg font-semibold text-violet-600 flex items-center gap-2">
           <Plane size={18} /> Aircraft Info
@@ -138,9 +120,32 @@ const FlightDetails = () => {
         <h2 className="text-lg font-semibold text-violet-600 flex items-center gap-2">
           <MapPin size={18} /> Seat Map Preview
         </h2>
-        <div className="border rounded p-4 text-center text-gray-500 italic">
-          [Seat map image or interactive preview goes here]
+        <SeatMap seats={seatMap} onSeatClick={() => {}} />
+      </section>
+
+      {/* Baggage Info */}
+      <section className="bg-white p-6 shadow-lg rounded-xl border space-y-2">
+        <div className="flex items-center gap-2 text-violet-600 font-semibold text-lg">
+          <Briefcase size={18} /> Baggage Allowance
         </div>
+        <ul className="list-disc ml-6 space-y-1 text-gray-700">
+          <li>1 carry-on bag (7kg max)</li>
+          <li>1 checked baggage (up to 20kg)</li>
+          <li>Additional baggage fees apply beyond limit</li>
+        </ul>
+      </section>
+
+      {/* Services */}
+      <section className="bg-white p-6 shadow-lg rounded-xl border space-y-2">
+        <div className="flex items-center gap-2 text-violet-600 font-semibold text-lg">
+          <Info size={18} /> In-flight Services
+        </div>
+        <ul className="list-disc ml-6 space-y-1 text-gray-700">
+          <li>Complimentary meals and beverages</li>
+          <li>Wi-Fi (limited availability)</li>
+          <li>Entertainment system with movies/music</li>
+          <li>Power outlets at each seat</li>
+        </ul>
       </section>
 
       {/* Terms */}

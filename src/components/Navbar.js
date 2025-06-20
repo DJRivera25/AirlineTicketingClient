@@ -86,13 +86,13 @@ const UserNavbar = () => {
               onMouseLeave={() => setDropdownOpen(false)}
               ref={dropdownRef}
             >
-              <button className="flex items-center gap-2 px-3 py-2 rounded hover:bg-violet-100 transition">
+              <div className="flex items-center gap-2 px-3 py-2 rounded hover:bg-violet-100 transition cursor-pointer">
                 <User2 size={20} className="text-violet-700" />
                 <span className="hidden sm:inline font-medium text-gray-800">{user.fullName}</span>
-              </button>
+              </div>
 
               {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white text-gray-700 rounded-md shadow-lg z-50">
+                <div className="absolute right-0 top-full w-48 bg-white text-gray-700 rounded-md shadow-lg z-50">
                   <div className="px-4 py-2 text-sm border-b border-gray-200">
                     Signed in as <br />
                     <span className="font-semibold">{user.fullName}</span>

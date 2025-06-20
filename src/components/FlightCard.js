@@ -42,7 +42,12 @@ const FlightCard = ({ flight, isSelected, onSelect, viewFlightDetails }) => {
       </div>
 
       <div className="text-center w-full md:w-1/6">
-        <p className="text-sm text-gray-600">Seats</p>
+        <p className="text-sm text-gray-600">Seat Capacity</p>
+        <p className="font-medium">{flight.seatCapacity}</p>
+      </div>
+
+      <div className="text-center w-full md:w-1/6">
+        <p className="text-sm text-gray-600">Available Seats</p>
         <p className="font-medium">{flight.availableSeats}</p>
       </div>
 
