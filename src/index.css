@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Tailwind helper for printing 2 per page */ 
+@media print {
+    .page-break {
+      page-break-after: always;
+    }
+    @page {
+      size: A4;
+      margin: 1cm;
+    }
+  
+    /* Prevent Tailwind’s utilities from interfering with print layout */
+    body {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+  }
+  
