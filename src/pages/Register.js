@@ -33,7 +33,6 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
 
   const validate = () => {
     const newErrors = {};
@@ -74,31 +73,12 @@ const Register = () => {
     }`;
 
   return (
-    <div
-      className={`${
-        darkMode ? "bg-gray-900 text-white" : "bg-violet-50 text-black"
-      } min-h-screen flex items-center justify-center px-4 transition-colors`}
-    >
+    <div className="bg-violet-50 text-black min-h-screen flex items-center justify-center px-4 transition-colors">
       <ToastContainer />
 
       <div className="max-w-md w-full bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-8 space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-violet-700 dark:text-violet-300">Create Your Account</h1>
-          {/* <Switch
-            checked={darkMode}
-            onChange={setDarkMode}
-            className={`${
-              darkMode ? "bg-violet-600" : "bg-gray-300"
-            } relative inline-flex h-6 w-11 items-center rounded-full`}
-            aria-label="Toggle Dark Mode"
-          >
-            <span className="sr-only">Toggle Dark Mode</span>
-            <span
-              className={`${
-                darkMode ? "translate-x-6" : "translate-x-1"
-              } inline-block h-4 w-4 transform rounded-full bg-white transition`}
-            />
-          </Switch> */}
         </div>
 
         <p className="text-gray-600 dark:text-gray-300">
@@ -111,53 +91,85 @@ const Register = () => {
             aria-label="Full Name"
             placeholder="Full Name"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => {
+              setName(e.target.value);
+              if (errors.name && e.target.value.trim()) {
+                setErrors((prev) => ({ ...prev, name: undefined }));
+              }
+            }}
             className={inputClasses("name")}
             required
           />
+          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+
           <div>
             <input
               type="email"
               aria-label="Email"
               placeholder="Email Address"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (errors.email && emailRegex.test(e.target.value)) {
+                  setErrors((prev) => ({ ...prev, email: undefined }));
+                }
+              }}
               className={inputClasses("email")}
               required
             />
             {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
           </div>
+
           <div>
             <input
               type="text"
               aria-label="Mobile Number"
               placeholder="Mobile Number"
               value={mobileNo}
-              onChange={(e) => setMobileNo(e.target.value)}
+              onChange={(e) => {
+                setMobileNo(e.target.value);
+                const mobileRegex = /^\d{10,11}$/;
+                if (errors.mobileNo && mobileRegex.test(e.target.value)) {
+                  setErrors((prev) => ({ ...prev, mobileNo: undefined }));
+                }
+              }}
               className={inputClasses("mobileNo")}
               required
             />
             {errors.mobileNo && <p className="text-red-500 text-sm mt-1">{errors.mobileNo}</p>}
           </div>
+
           <div>
             <input
               type="password"
               aria-label="Password"
               placeholder="Password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (errors.password && e.target.value.length >= 8) {
+                  setErrors((prev) => ({ ...prev, password: undefined }));
+                }
+              }}
               className={inputClasses("password")}
               required
             />
             {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
           </div>
+
           <div>
             <input
               type="password"
               aria-label="Confirm Password"
               placeholder="Confirm Password"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={(e) => {
+                setConfirmPassword(e.target.value);
+                if (errors.confirmPassword && e.target.value === password) {
+                  setErrors((prev) => ({ ...prev, confirmPassword: undefined }));
+                }
+              }}
               className={inputClasses("confirmPassword")}
               required
             />

@@ -2,27 +2,25 @@ import React, { useState, useRef, useEffect, useContext } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Menu, X, User, LogOut, User2 } from "lucide-react";
 import UserContext from "../context/UserContext";
-import logo4 from "../assets/logo4.png";
+import logo3 from "../assets/logo3.png";
 
 const UserNavbar = () => {
   const { user, unsetUser, setToken } = useContext(UserContext);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    setIsLoggedIn(!!user?.id);
-  }, [user]);
+  // Delayed check to prevent early render mismatch
+  const isLoggedIn = !!user?.id;
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
     unsetUser();
     setToken(null);
     navigate("/login");
   };
 
+  // Close dropdown if clicking outside
   useEffect(() => {
     const closeDropdown = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -34,52 +32,37 @@ const UserNavbar = () => {
   }, []);
 
   const navLinkClass = ({ isActive }) =>
-    isActive ? "text-violet-300 font-semibold" : "text-white/90 hover:text-violet-300 transition duration-200";
+    isActive ? "text-violet-700 font-semibold" : "text-gray-700 hover:text-violet-700 transition";
 
   return (
     <header className="fixed top-0 left-0 w-full z-50 bg-white/70 backdrop-blur-md border-b border-gray-200 shadow-md transition-all duration-300">
       <div className="max-w-7xl mx-auto px-5 py-4 flex items-center justify-between w-full">
-        {/* LEFT: Logo + Brand */}
+        {/* Logo + Brand */}
         <Link to="/" className="flex items-center gap-3 min-w-[250px]">
           <div className="h-10 w-10">
-            <img src={logo4} alt="Logo" className="h-full w-full object-contain object-center" />
+            <img src={logo3} alt="Logo" className="h-full w-full object-contain object-center" />
           </div>
           <span className="text-xl font-extrabold tracking-wide text-violet-700">
             Tiket <span className="text-violet-500">Lakwatsero</span>
           </span>
         </Link>
 
-        {/* CENTER: Nav Links - show only on md+ */}
+        {/* Nav Links (center) */}
         <div className="hidden md:flex items-center justify-center gap-6 flex-1">
-          <NavLink
-            to="/"
-            className={({ isActive }) =>
-              isActive ? "text-violet-700 font-semibold" : "text-gray-700 hover:text-violet-700 transition"
-            }
-          >
+          <NavLink to="/" className={navLinkClass}>
             Home
           </NavLink>
-          <NavLink
-            to="/support"
-            className={({ isActive }) =>
-              isActive ? "text-violet-700 font-semibold" : "text-gray-700 hover:text-violet-700 transition"
-            }
-          >
+          <NavLink to="/support" className={navLinkClass}>
             Support
           </NavLink>
           {isLoggedIn && (
-            <NavLink
-              to="/account/bookings"
-              className={({ isActive }) =>
-                isActive ? "text-violet-700 font-semibold" : "text-gray-700 hover:text-violet-700 transition"
-              }
-            >
+            <NavLink to="/account/bookings" className={navLinkClass}>
               My Bookings
             </NavLink>
           )}
         </div>
 
-        {/* RIGHT: Auth/Profile - show only on md+ */}
+        {/* Right - Auth/Profile */}
         <div className="hidden md:flex items-center gap-4">
           {!isLoggedIn ? (
             <>
@@ -103,13 +86,13 @@ const UserNavbar = () => {
               onMouseLeave={() => setDropdownOpen(false)}
               ref={dropdownRef}
             >
-              <button className="flex items-center gap-2 px-3 py-2 rounded hover:bg-violet-100">
+              <button className="flex items-center gap-2 px-3 py-2 rounded hover:bg-violet-100 transition">
                 <User2 size={20} className="text-violet-700" />
                 <span className="hidden sm:inline font-medium text-gray-800">{user.fullName}</span>
               </button>
 
               {dropdownOpen && (
-                <div className="absolute right-0  w-48 bg-white text-gray-700 rounded-md shadow-lg z-50">
+                <div className="absolute right-0 mt-2 w-48 bg-white text-gray-700 rounded-md shadow-lg z-50">
                   <div className="px-4 py-2 text-sm border-b border-gray-200">
                     Signed in as <br />
                     <span className="font-semibold">{user.fullName}</span>
@@ -140,7 +123,7 @@ const UserNavbar = () => {
           )}
         </div>
 
-        {/* Mobile Toggle Button */}
+        {/* Mobile menu button */}
         <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden text-violet-700" aria-label="Toggle Menu">
           {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>

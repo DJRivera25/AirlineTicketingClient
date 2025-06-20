@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import UserContext from "../context/UserContext";
@@ -35,8 +35,8 @@ const Login = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     unsetUser();
@@ -45,65 +45,78 @@ const Login = () => {
 
   const validate = () => {
     const newErrors = {};
-    if (!email.includes("@")) newErrors.email = "Invalid email format.";
-    if (password.length < 6) newErrors.password = "Password must be at least 6 characters.";
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email)) newErrors.email = "Invalid email format.";
+    if (password.length < 8) newErrors.password = "Password must be at least 8 characters.";
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (!validate()) {
-      toast.error("Please fix validation errors.");
-      return;
-    }
+    if (!validate()) return;
 
     setLoading(true);
+    setErrors({}); // clear previous
+
     try {
       const res = await axios.post(`${baseUrl}/users/login`, { email, password });
       const token = res.data.access;
+
       localStorage.setItem("token", token);
       setToken(token);
 
       const userRes = await axios.get(`${baseUrl}/users/details`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const user = userRes.data;
-      setUser(user);
 
+      setUser(userRes.data);
       toast.success("Login successful!");
 
-      // ⏱ Add delay before redirecting
       setTimeout(() => {
-        setLoading(false);
-        navigate(user.isAdmin ? "/admin/dashboard" : "/");
-      }, 2000);
+        navigate(userRes.data.isAdmin ? "/admin/dashboard" : "/");
+      }, 1500);
     } catch (error) {
-      toast.error(error.response?.data?.message || "Login failed.");
-      setTimeout(() => {
-        setLoading(false);
-      }, 2000);
+      // Do not map API error into form fields — just show toast
+      toast.error("Invalid email or password.");
+    } finally {
+      setLoading(false);
     }
   };
 
+  const inputClasses = (field) =>
+    `w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 ${
+      errors[field] ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-violet-500"
+    }`;
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-violet-50 px-4">
+      <ToastContainer />
       <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg space-y-6">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-violet-700">Welcome Back!</h1>
           <p className="text-gray-600 mt-2">Log in to book, manage, and view your trips on Tiket Lakwatsero.</p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-4" noValidate>
           <div>
             <input
               type="email"
               placeholder="Email Address"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 ${
-                errors.email ? "border-red-500 focus:ring-red-400" : "focus:ring-violet-500"
-              }`}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (errors.email) {
+                  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                  if (emailRegex.test(e.target.value)) {
+                    setErrors((prev) => ({ ...prev, email: undefined }));
+                  }
+                }
+              }}
+              className={inputClasses("email")}
+              required
             />
             {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
           </div>
@@ -113,10 +126,14 @@ const Login = () => {
               type="password"
               placeholder="Password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 ${
-                errors.password ? "border-red-500 focus:ring-red-400" : "focus:ring-violet-500"
-              }`}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (errors.password && e.target.value.length >= 6) {
+                  setErrors((prev) => ({ ...prev, password: undefined }));
+                }
+              }}
+              className={inputClasses("password")}
+              required
             />
             {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
           </div>
