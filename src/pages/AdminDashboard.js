@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 
 const AdminDashboard = () => {
   const [recentBookings, setRecentBookings] = useState([]);
@@ -29,7 +29,8 @@ const AdminDashboard = () => {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
-        setRecentBookings(bookingsRes.data.slice(0, 10)); // Show latest 10 bookings
+
+        setRecentBookings(bookingsRes.data.slice(0, 10));
         setUsers(usersRes.data.totalUsers);
         setFlights(flightsRes.data.totalItems);
         setPassengers(passengersRes.data.length);
@@ -42,23 +43,42 @@ const AdminDashboard = () => {
   }, []);
 
   const chartData = useMemo(() => {
-    const counts = Array(12).fill(0);
+    const bookingsPerMonth = Array(12).fill(0);
+    const passengersPerMonth = Array(12).fill(0);
+    const revenuePerMonth = Array(12).fill(0);
+
     recentBookings.forEach((booking) => {
       const date = new Date(booking.bookedAt);
-      counts[date.getMonth()]++;
+      const month = date.getMonth();
+
+      bookingsPerMonth[month]++;
+      passengersPerMonth[month] += booking.passengers?.length || 0;
+
+      // ✅ Only count revenue if status is "paid"
+      if (booking.status === "paid") {
+        revenuePerMonth[month] += booking.totalPrice || 0;
+      }
     });
 
-    return counts.map((count, index) => ({
-      name: new Date(0, index).toLocaleString("default", { month: "short" }),
-      bookings: count,
+    return bookingsPerMonth.map((_, i) => ({
+      month: new Date(0, i).toLocaleString("default", { month: "short" }),
+      bookings: bookingsPerMonth[i],
+      passengers: passengersPerMonth[i],
+      revenue: revenuePerMonth[i],
     }));
+  }, [recentBookings]);
+  const totalRevenue = useMemo(() => {
+    return recentBookings
+      .filter((b) => b.status === "paid")
+      .reduce((sum, b) => sum + (b.totalPrice || 0), 0)
+      .toLocaleString();
   }, [recentBookings]);
 
   const cardItems = [
     { label: "Total Users", value: users, onClick: () => navigate("/admin/users") },
     { label: "Passengers", value: passengers, onClick: () => navigate("/admin/passengers") },
     { label: "Flights", value: flights, onClick: () => navigate("/admin/flights") },
-    { label: "Revenue", value: "₱125,000", onClick: null },
+    { label: "Revenue", value: `₱${totalRevenue}`, onClick: null },
   ];
 
   return (
@@ -79,22 +99,58 @@ const AdminDashboard = () => {
         ))}
       </div>
 
-      {/* Booking Chart */}
-      <div className="bg-white rounded-2xl shadow-md p-6">
-        <h2 className="text-xl font-semibold mb-4 text-violet-800">Monthly Booking Trends</h2>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData}>
-              <XAxis dataKey="name" stroke="#7c3aed" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="bookings" fill="#7c3aed" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+      {/* Charts */}
+      <div className="grid md:grid-cols-3 gap-6">
+        {/* Bookings Chart */}
+        <div className="bg-white rounded-2xl shadow-md p-6">
+          <h2 className="text-xl font-semibold mb-4 text-violet-800">Monthly Bookings</h2>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" stroke="#7c3aed" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="bookings" fill="#7c3aed" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Passengers Chart */}
+        <div className="bg-white rounded-2xl shadow-md p-6">
+          <h2 className="text-xl font-semibold mb-4 text-violet-800">Monthly Passengers</h2>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" stroke="#7c3aed" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="passengers" fill="#34d399" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Revenue Chart */}
+        <div className="bg-white rounded-2xl shadow-md p-6">
+          <h2 className="text-xl font-semibold mb-4 text-violet-800">Monthly Revenue</h2>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" stroke="#7c3aed" />
+                <YAxis />
+                <Tooltip formatter={(value) => `₱${value.toLocaleString()}`} />
+                <Bar dataKey="revenue" fill="#f59e0b" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
-      {/* Recent Bookings */}
+      {/* Recent Bookings Table */}
       <div className="bg-white rounded-2xl shadow-md p-6">
         <h2 className="text-xl font-semibold mb-4 text-violet-800">Recent Bookings</h2>
         <div className="overflow-x-auto">
@@ -155,22 +211,6 @@ const AdminDashboard = () => {
               </tbody>
             </table>
           )}
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="bg-white rounded-2xl shadow-md p-6">
-        <h2 className="text-xl font-semibold mb-4 text-violet-800">Quick Actions</h2>
-        <div className="flex flex-wrap gap-4">
-          <button
-            onClick={() => navigate("/admin/flights")}
-            className="bg-violet-600 text-white px-6 py-3 rounded-lg shadow hover:bg-violet-700 transition"
-          >
-            ✈ Add Flight
-          </button>
-          <button className="bg-gray-100 text-gray-700 px-6 py-3 rounded-lg shadow hover:bg-gray-200 transition">
-            📊 Generate Report
-          </button>
         </div>
       </div>
     </div>

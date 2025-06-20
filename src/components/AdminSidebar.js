@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { LayoutDashboard, Users, Plane, ClipboardList, BarChart2, ChevronRight, ChevronLeft } from "lucide-react";
+import logo from "../assets/logo4text.png"; // import your image
 
 const navItems = [
   { label: "Dashboard", to: "/admin/dashboard", icon: LayoutDashboard },
@@ -30,9 +31,12 @@ const AdminSidebar = ({ isLockedOpen, toggleSidebar }) => {
       </button>
 
       {/* Logo */}
-      <div className="flex items-center gap-2 px-4 py-5 border-b border-violet-700">
-        <span className="text-2xl">✈️</span>
-        {isSidebarOpen && <span className="text-lg font-bold tracking-wide">Tiket Lakwatsero</span>}
+      <div className="flex items-center justify-center px-4 py-5 border-b border-violet-700">
+        <img
+          src={logo}
+          alt="Tiket Lakwatsero Logo"
+          className={`transition-all duration-300 ${isSidebarOpen ? "w-44" : "w-8"}`}
+        />
       </div>
 
       {/* Nav Items */}
