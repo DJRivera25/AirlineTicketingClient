@@ -140,7 +140,7 @@ const FlightSearchForm = ({ form, handleChange, handleSearch }) => {
                 className="w-full h-[3.2rem] bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-semibold px-6 py-3 rounded-xl shadow-md hover:shadow-indigo-500/50 transition-all duration-300 flex items-center justify-center gap-2"
               >
                 <Search className="w-5 h-5" />
-                Search
+                Search Flights
               </button>
             </div>
           </div>
