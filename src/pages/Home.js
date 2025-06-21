@@ -16,10 +16,23 @@ const Home = () => {
     return: "",
     passengers: 1,
     class: "",
+    tripType: "round-trip", // 👈 Add this
   });
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (eOrObj) => {
+    if (eOrObj?.target) {
+      // Case 1: from an event
+      setForm((prev) => ({
+        ...prev,
+        [eOrObj.target.name]: eOrObj.target.value,
+      }));
+    } else {
+      // Case 2: from a plain object
+      setForm((prev) => ({
+        ...prev,
+        ...eOrObj,
+      }));
+    }
   };
 
   const handleSearch = async (e) => {
@@ -36,8 +49,8 @@ const Home = () => {
   return (
     <>
       {/* Main content */}
+      <HeroSection />
       <div className="relative z-10 p-6 max-w-7xl mx-auto space-y-16">
-        <HeroSection />
         <FlightSearchForm form={form} handleChange={handleChange} handleSearch={handleSearch} />
         <Footer />
       </div>

@@ -1,34 +1,33 @@
-import { ArrowRightIcon } from "@heroicons/react/24/solid";
-import { PlaneTakeoff } from "lucide-react";
+import { useEffect, useState } from "react";
+import heroBackgrounds from "../data/HeroBackground";
 
 const HeroSection = () => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const current = heroBackgrounds[currentIndex];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % heroBackgrounds.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <section className="relative bg-gradient-to-br from-violet-800 via-violet-700 to-violet-600 text-white overflow-hidden rounded-xl shadow-2xl px-6 py-20 sm:py-28 text-center">
-      {/* Decorative background blur */}
-      <div className="absolute inset-0 bg-cover bg-center opacity-20 blur-sm scale-105" />
-      {/* Content wrapper */}
-      <div className="relative z-10 max-w-4xl mx-auto space-y-8 animate-fadeIn">
-        {/* Title */}
-        <div className="flex justify-center items-center gap-4">
-          <PlaneTakeoff className="w-12 h-12 text-white drop-shadow-xl" />
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight">
-            Welcome to <span className="text-yellow-300 drop-shadow-md">Tiket Lakwatsero</span>
-          </h1>
-        </div>
+    <section className="relative h-[18rem] sm:h-[22rem] md:h-[26rem] lg:h-[28rem] xl:h-[30rem] w-full overflow-hidden shadow-2xl">
+      {/* Background image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center transition-all duration-1000"
+        style={{ backgroundImage: `url(${current.image})` }}
+      />
 
-        {/* Subtitle */}
-        <p className="text-lg sm:text-xl text-violet-100 max-w-2xl mx-auto leading-relaxed">
-          Discover world-class destinations, book flights in seconds, and take off with confidence.
-        </p>
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent backdrop-blur-sm" />
 
-        {/* Call to action */}
-        <a
-          href="#searchFlight"
-          className="inline-flex items-center gap-3 bg-yellow-300 text-violet-900 hover:bg-yellow-400 hover:scale-105 px-6 py-3 rounded-full text-lg font-semibold shadow-lg transition-all duration-300"
-        >
-          Book Your Flight Now
-          <ArrowRightIcon className="w-5 h-5" />
-        </a>
+      {/* Country name */}
+      <div className="relative z-10 flex items-center justify-center h-full">
+        <h1 className="text-white text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight drop-shadow-xl text-center px-4">
+          {current.country}
+        </h1>
       </div>
     </section>
   );

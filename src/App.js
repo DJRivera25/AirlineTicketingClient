@@ -51,7 +51,7 @@ function AppContent({ isAdmin }) {
       {!isAdminRoute && <Navbar />}
 
       {/* Padding for fixed navbar */}
-      <div className={!isAdminRoute ? "pt-24 px-4 sm:px-6 md:px-8" : ""}>
+      <div className={!isAdminRoute && location.pathname !== "/" ? "pt-24 px-4 sm:px-6 md:px-8" : !isAdminRoute}>
         <Routes>
           {/* Public/User Routes */}
           <Route path="/" element={<Home />} />

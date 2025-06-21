@@ -1,17 +1,39 @@
-import { useState } from "react";
-import { Search, CalendarDays, PlaneTakeoff, PlaneLanding, Briefcase, RefreshCcw } from "lucide-react";
+import { Search, PlaneTakeoff, PlaneLanding, CalendarDays, Repeat } from "lucide-react";
 import DatePicker from "react-datepicker";
 import CustomDateInput from "./CustomDateInput";
 
 const FlightSearchForm = ({ form, handleChange, handleSearch }) => {
-  const [tripType, setTripType] = useState("round-trip");
-
-  const handleDateChange = (name, date) => {
-    handleChange({ target: { name, value: date.toISOString().split("T")[0] } });
+  const reverseFromTo = () => {
+    handleChange({ target: { name: "from", value: form.to } });
+    handleChange({ target: { name: "to", value: form.from } });
   };
 
-  const departureDate = form.departure ? new Date(form.departure) : null;
-  const returnDate = form.return ? new Date(form.return) : null;
+  const handleDateRangeChange = (dates) => {
+    if (form.tripType === "round-trip") {
+      const [start, end] = Array.isArray(dates) ? dates : [null, null];
+      handleChange({ target: { name: "departure", value: start } });
+      handleChange({ target: { name: "return", value: end } });
+    } else {
+      const date = dates instanceof Date ? dates : null;
+      handleChange({ target: { name: "departure", value: date } });
+      handleChange({ target: { name: "return", value: null } });
+    }
+  };
+
+  const formatDate = (date) =>
+    date
+      ? new Date(date).toLocaleDateString(undefined, {
+          weekday: "short",
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        })
+      : "";
+
+  const formattedDateDisplay =
+    form.tripType === "round-trip"
+      ? `${formatDate(form.departure)} - ${formatDate(form.return)}`
+      : `${formatDate(form.departure)}`;
 
   return (
     <section
@@ -20,141 +42,106 @@ const FlightSearchForm = ({ form, handleChange, handleSearch }) => {
     >
       <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-violet-800 to-violet-700 opacity-10 animate-pulse-slow" />
 
-      <div className="relative bg-white/80 backdrop-blur-2xl border border-violet-100 rounded-3xl shadow-2xl p-8 sm:p-12 lg:p-14 space-y-10 transition-all duration-300 hover:shadow-violet-400/30">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <h2 className="text-4xl sm:text-5xl font-extrabold text-violet-800 tracking-tight">Book Your Flight</h2>
-          <p className="text-gray-600 text-lg sm:text-xl">
-            Plan smarter. Fly better. Wherever you're headed, we’ve got you covered.
-          </p>
+      <div className="relative bg-white/80 backdrop-blur-2xl border border-violet-100 rounded-3xl shadow-2xl p-2 sm:p-6 lg:p-8 space-y-6 transition-all duration-300 hover:shadow-violet-400/30">
+        {/* Trip Type */}
+        <div className="flex items-center gap-8 justify-center">
+          {["one-way", "round-trip"].map((type) => (
+            <label key={type} className="inline-flex items-center gap-2 text-sm font-medium text-gray-700">
+              <input
+                type="radio"
+                name="tripType"
+                value={type}
+                checked={form.tripType === type}
+                onChange={handleChange}
+                className="form-radio text-violet-600"
+              />
+              {type === "one-way" ? "One Way" : "Round Trip"}
+            </label>
+          ))}
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSearch} className="space-y-8">
-          {/* Row 1 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Trip Type */}
-            <div>
-              <label className="flex items-center text-sm font-medium text-gray-700 gap-1 mb-1">
-                <RefreshCcw size={16} className="text-violet-500" />
-                Trip Type
-              </label>
-              <select
-                name="tripType"
-                value={tripType}
-                onChange={(e) => {
-                  setTripType(e.target.value);
-                  handleChange(e);
-                }}
-                className="w-full border border-gray-300 rounded-xl p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-violet-500 shadow-inner"
+        {/* Main Form */}
+        <form onSubmit={handleSearch}>
+          <div className="grid grid-cols-12 gap-3 items-end">
+            {/* From/To Inputs + Reverse */}
+            <div className="col-span-5 relative">
+              <div className="flex gap-2">
+                <div className="w-1/2">
+                  <label className="flex items-center text-sm font-medium text-gray-700 gap-1 mb-1">
+                    <PlaneTakeoff size={16} className="text-violet-500" />
+                    From
+                  </label>
+                  <input
+                    name="from"
+                    value={form.from}
+                    onChange={handleChange}
+                    type="text"
+                    placeholder="e.g., Manila (MNL)"
+                    required
+                    className="w-full border border-gray-300 rounded-xl p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-violet-500 shadow-inner"
+                  />
+                </div>
+
+                <div className="w-1/2">
+                  <label className="flex items-center text-sm font-medium text-gray-700 gap-1 mb-1">
+                    <PlaneLanding size={16} className="text-violet-500" />
+                    To
+                  </label>
+                  <input
+                    name="to"
+                    value={form.to}
+                    onChange={handleChange}
+                    type="text"
+                    placeholder="e.g., Tokyo (NRT)"
+                    required
+                    className="w-full border border-gray-300 rounded-xl p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-violet-500 shadow-inner"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={reverseFromTo}
+                className="absolute left-1/2 top-2/3 transform -translate-x-1/2 -translate-y-1/2 bg-violet-100 hover:bg-violet-200 p-2 rounded-full z-10 shadow-md transition"
+                title="Reverse Route"
               >
-                <option value="one-way">One Way</option>
-                <option value="round-trip">Round Trip</option>
-              </select>
+                <Repeat size={20} className="text-violet-700" />
+              </button>
             </div>
 
-            {/* Departure Date (Date Picker) */}
-            <div>
+            {/* Date Picker */}
+            <div className="col-span-4">
               <label className="flex items-center text-sm font-medium text-gray-700 gap-1 mb-1">
                 <CalendarDays size={16} className="text-violet-500" />
-                Departure Date
+                {form.tripType === "round-trip" ? "Dates" : "Departure"}
               </label>
 
               <DatePicker
-                selected={form.departure}
-                onChange={(date) => handleChange({ target: { name: "departure", value: date } })}
-                customInput={<CustomDateInput placeholder="Select departure date" />}
-                dateFormat="yyyy-MM-dd"
+                {...(form.tripType === "round-trip"
+                  ? {
+                      selectsRange: true,
+                      startDate: form.departure ? new Date(form.departure) : null,
+                      endDate: form.return ? new Date(form.return) : null,
+                    }
+                  : { selected: form.departure ? new Date(form.departure) : null })}
+                onChange={handleDateRangeChange}
                 minDate={new Date()}
+                customInput={<CustomDateInput placeholder="Select travel dates" value={formattedDateDisplay} />}
+                dateFormat="eee, MMMM d, yyyy"
                 wrapperClassName="w-full"
               />
             </div>
 
-            {/* Return Date (Only show if Round Trip) */}
-            {tripType === "round-trip" && (
-              <div>
-                <label className="flex items-center text-sm font-medium text-gray-700 gap-1 mb-1">
-                  <CalendarDays size={16} className="text-violet-500" />
-                  Return Date
-                </label>
-
-                <DatePicker
-                  selected={form.return}
-                  onChange={(date) => handleChange({ target: { name: "return", value: date } })}
-                  customInput={<CustomDateInput placeholder="Select return date" />}
-                  dateFormat="yyyy-MM-dd"
-                  minDate={form.departure}
-                  wrapperClassName="w-full"
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Row 2 (unchanged) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* From */}
-            <div>
-              <label className="flex items-center text-sm font-medium text-gray-700 gap-1 mb-1">
-                <PlaneTakeoff size={16} className="text-violet-500" />
-                From
-              </label>
-              <input
-                name="from"
-                value={form.from}
-                onChange={handleChange}
-                type="text"
-                placeholder="e.g., Manila (MNL)"
-                required
-                className="w-full border border-gray-300 rounded-xl p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-violet-500 shadow-inner"
-              />
-            </div>
-
-            {/* To */}
-            <div>
-              <label className="flex items-center text-sm font-medium text-gray-700 gap-1 mb-1">
-                <PlaneLanding size={16} className="text-violet-500" />
-                To
-              </label>
-              <input
-                name="to"
-                value={form.to}
-                onChange={handleChange}
-                type="text"
-                placeholder="e.g., Tokyo (NRT)"
-                required
-                className="w-full border border-gray-300 rounded-xl p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-violet-500 shadow-inner"
-              />
-            </div>
-
-            {/* Class */}
-            <div>
-              <label className="flex items-center text-sm font-medium text-gray-700 gap-1 mb-1">
-                <Briefcase size={16} className="text-violet-500" />
-                Cabin Class
-              </label>
-              <select
-                name="class"
-                value={form.class}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-xl p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-violet-500 shadow-inner"
+            {/* Submit Button */}
+            <div className="col-span-3">
+              <button
+                type="submit"
+                className="w-full bg-violet-700 hover:bg-violet-800 text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:shadow-violet-400/40 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
               >
-                <option value="Economy">Economy</option>
-                <option value="Premium Economy">Premium Economy</option>
-                <option value="Business">Business</option>
-                <option value="First">First Class</option>
-              </select>
+                <Search className="w-5 h-5" />
+                Search
+              </button>
             </div>
-          </div>
-
-          {/* CTA */}
-          <div className="pt-6">
-            <button
-              type="submit"
-              className="w-full bg-violet-700 hover:bg-violet-800 text-white text-lg font-semibold px-6 py-3 rounded-full shadow-lg hover:shadow-violet-400/40 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
-            >
-              <Search className="w-5 h-5" />
-              Search Flights
-            </button>
           </div>
         </form>
       </div>
