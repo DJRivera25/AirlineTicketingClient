@@ -1,5 +1,17 @@
 import React, { useState } from "react";
-import { X, PlaneTakeoff, Repeat, CalendarDays } from "lucide-react";
+import {
+  X,
+  PlaneTakeoff,
+  CalendarDays,
+  Repeat,
+  Plane,
+  Hash,
+  DoorOpen,
+  Landmark,
+  DollarSign,
+  Users,
+  Info,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import DatePicker from "react-datepicker";
@@ -56,8 +68,8 @@ const AddFlightModal = ({ isOpen, onClose, onSubmit }) => {
     try {
       const payload = {
         ...formData,
-        from: formData.from,
-        to: formData.to,
+        from: getCityLabel(formData.from),
+        to: getCityLabel(formData.to),
         departureTime: formData.departureTime?.toISOString(),
         arrivalTime: formData.arrivalTime?.toISOString(),
       };
@@ -81,6 +93,20 @@ const AddFlightModal = ({ isOpen, onClose, onSubmit }) => {
 
   if (!isOpen) return null;
 
+  const inputFields = [
+    { label: "Airline", name: "airline", icon: <Plane size={16} className="text-violet-500" /> },
+    { label: "Flight Number", name: "flightNumber", icon: <Hash size={16} className="text-violet-500" /> },
+    { label: "Gate", name: "gate", icon: <DoorOpen size={16} className="text-violet-500" /> },
+    { label: "Terminal", name: "terminal", icon: <Landmark size={16} className="text-violet-500" /> },
+    { label: "Price (₱)", name: "price", icon: <DollarSign size={16} className="text-violet-500" />, type: "number" },
+    {
+      label: "Seat Capacity",
+      name: "seatCapacity",
+      icon: <Users size={16} className="text-violet-500" />,
+      type: "number",
+    },
+  ];
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center px-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl animate-fade-in-up p-6 relative">
@@ -92,24 +118,14 @@ const AddFlightModal = ({ isOpen, onClose, onSubmit }) => {
           </button>
         </div>
 
-        {/* Location Picker Modal */}
+        {/* Location Picker */}
         {showLocationPicker && (
           <div className="absolute top-24 left-6 right-6 z-50">
             <LocationPicker
-              selectedFrom={formData.from ? { code: formData.from.match(/\((.*?)\)/)?.[1] } : null}
-              selectedTo={formData.to ? { code: formData.to.match(/\((.*?)\)/)?.[1] } : null}
-              onSelectFrom={(city) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  from: `${city.name} (${city.code})`,
-                }))
-              }
-              onSelectTo={(city) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  to: `${city.name} (${city.code})`,
-                }))
-              }
+              selectedFrom={formData.from ? { code: formData.from } : null}
+              selectedTo={formData.to ? { code: formData.to } : null}
+              onSelectFrom={(city) => setFormData((prev) => ({ ...prev, from: city.code }))}
+              onSelectTo={(city) => setFormData((prev) => ({ ...prev, to: city.code }))}
               onClose={() => setShowLocationPicker(false)}
             />
           </div>
@@ -117,24 +133,19 @@ const AddFlightModal = ({ isOpen, onClose, onSubmit }) => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Text Inputs */}
-          {[
-            { label: "Airline", name: "airline" },
-            { label: "Flight Number", name: "flightNumber" },
-            { label: "Gate", name: "gate" },
-            { label: "Terminal", name: "terminal" },
-            { label: "Price (₱)", name: "price", type: "number" },
-            { label: "Seat Capacity", name: "seatCapacity", type: "number" },
-          ].map(({ label, name, type = "text" }) => (
+          {inputFields.map(({ label, name, type = "text", icon }) => (
             <div key={name}>
-              <label className="text-sm text-gray-600">{label}</label>
+              <label className="text-sm text-gray-600 flex items-center gap-1 mb-1">
+                {icon}
+                {label}
+              </label>
               <input
                 type={type}
                 name={name}
                 value={formData[name]}
                 onChange={handleChange}
                 disabled={loading}
-                className="w-full mt-1 px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500"
               />
             </div>
           ))}
@@ -151,9 +162,11 @@ const AddFlightModal = ({ isOpen, onClose, onSubmit }) => {
                 className="flex-1 border border-gray-300 rounded-xl px-4 py-2 shadow-inner text-left"
               >
                 <div className="flex flex-col sm:flex-row justify-between text-sm text-gray-700">
-                  <span className="text-violet-600 font-medium">{formData.from || "Select Origin"}</span>
+                  <span className="text-violet-600 font-medium">
+                    {formData.from ? `Origin: ${getCityLabel(formData.from)}` : "Select Origin"}
+                  </span>
                   <span className="text-indigo-600 font-medium sm:ml-4 mt-1 sm:mt-0">
-                    {formData.to || "Select Destination"}
+                    {formData.to ? `Destination: ${getCityLabel(formData.to)}` : "Select Destination"}
                   </span>
                 </div>
               </button>
@@ -168,7 +181,7 @@ const AddFlightModal = ({ isOpen, onClose, onSubmit }) => {
             </div>
           </div>
 
-          {/* Date & Time Pickers */}
+          {/* Departure */}
           <div>
             <label className="text-sm text-gray-600 flex items-center gap-1 mb-1">
               <CalendarDays size={16} className="text-violet-500" /> Departure Time
@@ -186,6 +199,7 @@ const AddFlightModal = ({ isOpen, onClose, onSubmit }) => {
             />
           </div>
 
+          {/* Arrival */}
           <div>
             <label className="text-sm text-gray-600 flex items-center gap-1 mb-1">
               <CalendarDays size={16} className="text-violet-500" /> Arrival Time
@@ -205,13 +219,15 @@ const AddFlightModal = ({ isOpen, onClose, onSubmit }) => {
 
           {/* Status */}
           <div>
-            <label className="text-sm text-gray-600">Status</label>
+            <label className="text-sm text-gray-600 flex items-center gap-1 mb-1">
+              <Info size={16} className="text-violet-500" /> Status
+            </label>
             <select
               name="status"
               value={formData.status}
               onChange={handleChange}
               disabled={loading}
-              className="w-full mt-1 px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500"
             >
               <option value="On Time">On Time</option>
               <option value="Delayed">Delayed</option>
