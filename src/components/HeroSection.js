@@ -6,9 +6,16 @@ const HeroSection = () => {
   const current = heroBackgrounds[currentIndex];
 
   useEffect(() => {
+    // Preload all images
+    heroBackgrounds.forEach((bg) => {
+      const img = new Image();
+      img.src = bg.image;
+    });
+
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % heroBackgrounds.length);
     }, 5000);
+
     return () => clearInterval(interval);
   }, []);
 
