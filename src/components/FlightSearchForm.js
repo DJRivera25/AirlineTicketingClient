@@ -137,7 +137,7 @@ const FlightSearchForm = ({ form, handleChange, handleSearch }) => {
             <div className="col-span-12 md:col-span-3">
               <button
                 type="submit"
-                className="w-full h-[3.2rem] bg-violet-700 hover:bg-violet-800 text-white font-semibold px-6 py-3 rounded-xl shadow-md hover:shadow-violet-500/50 transition-all duration-300 flex items-center justify-center gap-2"
+                className="w-full h-[3.2rem] bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-semibold px-6 py-3 rounded-xl shadow-md hover:shadow-indigo-500/50 transition-all duration-300 flex items-center justify-center gap-2"
               >
                 <Search className="w-5 h-5" />
                 Search
