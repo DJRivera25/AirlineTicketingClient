@@ -4,6 +4,7 @@ import HeroSection from "../components/HeroSection";
 import FlightSearchForm from "../components/FlightSearchForm";
 import Footer from "../components/Footer";
 import SearchContext from "../context/FlightSearchContext";
+import rawLocations from "../data/Locations";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -37,8 +38,23 @@ const Home = () => {
 
   const handleSearch = async (e) => {
     e.preventDefault();
+
+    const getCityFullLabel = (code) => {
+      const city = rawLocations
+        .flatMap((region) => region.countries)
+        .flatMap((country) => country.cities)
+        .find((c) => c.code === code);
+      return city ? `${city.name} (${city.code})` : code;
+    };
+
+    const formWithCityNames = {
+      ...form,
+      from: getCityFullLabel(form.from),
+      to: getCityFullLabel(form.to),
+    };
+
     try {
-      await searchFlights(form);
+      await searchFlights(formWithCityNames); // <-- send full labels
       navigate("/flights");
     } catch (err) {
       console.error("Search failed", err);
