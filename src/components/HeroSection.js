@@ -20,18 +20,18 @@ const HeroSection = () => {
   }, []);
 
   return (
-    <section className="relative h-[18rem] sm:h-[22rem] md:h-[26rem] lg:h-[28rem] xl:h-[30rem] w-full overflow-hidden shadow-2xl">
+    <section className="relative z-0 h-[18rem] sm:h-[22rem] md:h-[26rem] lg:h-[28rem] xl:h-[30rem] w-full overflow-hidden shadow-2xl">
       {/* Background image */}
       <div
-        className="absolute inset-0 bg-cover bg-center transition-all duration-1000"
+        className="absolute inset-0 bg-cover bg-center transition-all duration-1000 z-0"
         style={{ backgroundImage: `url(${current.image})` }}
       />
 
       {/* Dark overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent backdrop-blur-sm z-10" />
 
       {/* Country name */}
-      <div className="relative z-10 flex items-center justify-center h-full">
+      <div className="relative z-20 flex items-center justify-center h-full">
         <h1 className="text-white text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight drop-shadow-xl text-center px-4">
           {current.country}
         </h1>

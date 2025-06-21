@@ -36,35 +36,33 @@ const FlightSearchForm = ({ form, handleChange, handleSearch }) => {
       : `${formatDate(form.departure)}`;
 
   return (
-    <section
-      className="relative z-10 px-4 sm:px-8 md:px-16 max-w-screen-xl mx-auto -mt-20 animate-fadeInUp"
-      id="searchFlight"
-    >
-      <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-violet-800 to-violet-700 opacity-10 animate-pulse-slow" />
-
-      <div className="relative bg-white/80 backdrop-blur-2xl border border-violet-100 rounded-3xl shadow-2xl p-2 sm:p-6 lg:p-8 space-y-6 transition-all duration-300 hover:shadow-violet-400/30">
-        {/* Trip Type */}
-        <div className="flex items-center gap-8 justify-center">
+    <section className="relative z-30 px-4 sm:px-8 md:px-16 max-w-screen-xl mx-auto -mt-24" id="searchFlight">
+      <div className="group relative bg-white/70 backdrop-blur-2xl border border-violet-200 rounded-3xl shadow-[0_15px_50px_rgba(88,28,135,0.3)] transition-all duration-500 ease-in-out hover:shadow-[0_20px_80px_rgba(88,28,135,0.5)] hover:scale-[1.01] p-4 sm:p-6 lg:p-8 space-y-6">
+        {/* Trip Type Toggle */}
+        <div className="flex items-center justify-center gap-10">
           {["one-way", "round-trip"].map((type) => (
-            <label key={type} className="inline-flex items-center gap-2 text-sm font-medium text-gray-700">
+            <label
+              key={type}
+              className="inline-flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer"
+            >
               <input
                 type="radio"
                 name="tripType"
                 value={type}
                 checked={form.tripType === type}
                 onChange={handleChange}
-                className="form-radio text-violet-600"
+                className="form-radio text-violet-600 focus:ring-violet-500"
               />
-              {type === "one-way" ? "One Way" : "Round Trip"}
+              <span className="capitalize">{type.replace("-", " ")}</span>
             </label>
           ))}
         </div>
 
         {/* Main Form */}
         <form onSubmit={handleSearch}>
-          <div className="grid grid-cols-12 gap-3 items-end">
-            {/* From/To Inputs + Reverse */}
-            <div className="col-span-5 relative">
+          <div className="grid grid-cols-12 gap-4 items-end">
+            {/* From + To with Reverse */}
+            <div className="col-span-12 md:col-span-5 relative">
               <div className="flex gap-2">
                 <div className="w-1/2">
                   <label className="flex items-center text-sm font-medium text-gray-700 gap-1 mb-1">
@@ -99,10 +97,11 @@ const FlightSearchForm = ({ form, handleChange, handleSearch }) => {
                 </div>
               </div>
 
+              {/* Reverse Button */}
               <button
                 type="button"
                 onClick={reverseFromTo}
-                className="absolute left-1/2 top-2/3 transform -translate-x-1/2 -translate-y-1/2 bg-violet-100 hover:bg-violet-200 p-2 rounded-full z-10 shadow-md transition"
+                className="absolute left-1/2 top-2/3 transform -translate-x-1/2 -translate-y-1/2 bg-white border border-violet-200 hover:bg-violet-100 p-2 rounded-full z-10 shadow-md transition duration-300"
                 title="Reverse Route"
               >
                 <Repeat size={20} className="text-violet-700" />
@@ -110,7 +109,7 @@ const FlightSearchForm = ({ form, handleChange, handleSearch }) => {
             </div>
 
             {/* Date Picker */}
-            <div className="col-span-4">
+            <div className="col-span-12 md:col-span-4">
               <label className="flex items-center text-sm font-medium text-gray-700 gap-1 mb-1">
                 <CalendarDays size={16} className="text-violet-500" />
                 {form.tripType === "round-trip" ? "Dates" : "Departure"}
@@ -123,7 +122,9 @@ const FlightSearchForm = ({ form, handleChange, handleSearch }) => {
                       startDate: form.departure ? new Date(form.departure) : null,
                       endDate: form.return ? new Date(form.return) : null,
                     }
-                  : { selected: form.departure ? new Date(form.departure) : null })}
+                  : {
+                      selected: form.departure ? new Date(form.departure) : null,
+                    })}
                 onChange={handleDateRangeChange}
                 minDate={new Date()}
                 customInput={<CustomDateInput placeholder="Select travel dates" value={formattedDateDisplay} />}
@@ -132,11 +133,11 @@ const FlightSearchForm = ({ form, handleChange, handleSearch }) => {
               />
             </div>
 
-            {/* Submit Button */}
-            <div className="col-span-3">
+            {/* Search Button */}
+            <div className="col-span-12 md:col-span-3">
               <button
                 type="submit"
-                className="w-full bg-violet-700 hover:bg-violet-800 text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:shadow-violet-400/40 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
+                className="w-full h-[3.2rem] bg-violet-700 hover:bg-violet-800 text-white font-semibold px-6 py-3 rounded-xl shadow-md hover:shadow-violet-500/50 transition-all duration-300 flex items-center justify-center gap-2"
               >
                 <Search className="w-5 h-5" />
                 Search
