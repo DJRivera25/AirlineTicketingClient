@@ -2,17 +2,17 @@ import React, { useState } from "react";
 import { X, PlaneTakeoff, Repeat, CalendarDays } from "lucide-react";
 import { toast } from "react-toastify";
 import axios from "axios";
-import LocationPicker from "./LocationPicker";
-import rawLocations from "../data/Locations";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import LocationPicker from "./LocationPicker";
+import rawLocations from "../data/Locations";
 
 const getCityLabel = (code) => {
   const city = rawLocations
     .flatMap((region) => region.countries)
-    .flatMap((country) => country.cities.map((city) => ({ ...city, country: country.name })))
+    .flatMap((country) => country.cities)
     .find((c) => c.code === code);
-  return city ? `${city.name}, ${city.country} (${city.code})` : code;
+  return city ? `${city.name} (${city.code})` : code;
 };
 
 const AddFlightModal = ({ isOpen, onClose, onSubmit }) => {
@@ -30,24 +30,39 @@ const AddFlightModal = ({ isOpen, onClose, onSubmit }) => {
     status: "On Time",
   });
 
-  const [loading, setLoading] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleDateChange = (name, value) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
   const reverseFromTo = () => {
-    setFormData((prev) => ({ ...prev, from: prev.to, to: prev.from }));
+    setFormData((prev) => ({
+      ...prev,
+      from: prev.to,
+      to: prev.from,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      const res = await axios.post(`${process.env.REACT_APP_API_BASEURL}/flights`, formData, {
+      const payload = {
+        ...formData,
+        from: formData.from,
+        to: formData.to,
+        departureTime: formData.departureTime?.toISOString(),
+        arrivalTime: formData.arrivalTime?.toISOString(),
+      };
+
+      const res = await axios.post(`${process.env.REACT_APP_API_BASEURL}/flights`, payload, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -77,14 +92,24 @@ const AddFlightModal = ({ isOpen, onClose, onSubmit }) => {
           </button>
         </div>
 
-        {/* Location Picker */}
+        {/* Location Picker Modal */}
         {showLocationPicker && (
           <div className="absolute top-24 left-6 right-6 z-50">
             <LocationPicker
-              selectedFrom={formData.from ? { code: formData.from } : null}
-              selectedTo={formData.to ? { code: formData.to } : null}
-              onSelectFrom={(city) => setFormData((prev) => ({ ...prev, from: city.code }))}
-              onSelectTo={(city) => setFormData((prev) => ({ ...prev, to: city.code }))}
+              selectedFrom={formData.from ? { code: formData.from.match(/\((.*?)\)/)?.[1] } : null}
+              selectedTo={formData.to ? { code: formData.to.match(/\((.*?)\)/)?.[1] } : null}
+              onSelectFrom={(city) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  from: `${city.name} (${city.code})`,
+                }))
+              }
+              onSelectTo={(city) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  to: `${city.name} (${city.code})`,
+                }))
+              }
               onClose={() => setShowLocationPicker(false)}
             />
           </div>
@@ -92,16 +117,24 @@ const AddFlightModal = ({ isOpen, onClose, onSubmit }) => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {["airline", "flightNumber", "gate", "terminal", "price", "seatCapacity"].map((name) => (
+          {/* Text Inputs */}
+          {[
+            { label: "Airline", name: "airline" },
+            { label: "Flight Number", name: "flightNumber" },
+            { label: "Gate", name: "gate" },
+            { label: "Terminal", name: "terminal" },
+            { label: "Price (₱)", name: "price", type: "number" },
+            { label: "Seat Capacity", name: "seatCapacity", type: "number" },
+          ].map(({ label, name, type = "text" }) => (
             <div key={name}>
-              <label className="text-sm text-gray-600 capitalize">{name.replace(/([A-Z])/g, " $1")}</label>
+              <label className="text-sm text-gray-600">{label}</label>
               <input
-                type={name === "price" || name === "seatCapacity" ? "number" : "text"}
+                type={type}
                 name={name}
                 value={formData[name]}
                 onChange={handleChange}
                 disabled={loading}
-                className="w-full mt-1 p-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full mt-1 px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500"
               />
             </div>
           ))}
@@ -111,60 +144,64 @@ const AddFlightModal = ({ isOpen, onClose, onSubmit }) => {
             <label className="text-sm text-gray-600 flex items-center gap-1 mb-1">
               <PlaneTakeoff size={16} className="text-violet-500" /> From / To
             </label>
-            <button
-              type="button"
-              onClick={() => setShowLocationPicker(true)}
-              className="w-full border border-gray-300 rounded-xl px-3 py-2 text-gray-800 shadow-inner text-left relative flex items-center justify-between gap-4"
-            >
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm flex-1">
-                {formData.from ? (
-                  <span className="text-violet-600 font-semibold">Origin: {getCityLabel(formData.from)}</span>
-                ) : (
-                  <span className="text-gray-400">Select Origin</span>
-                )}
-                {formData.to ? (
-                  <span className="text-indigo-600 font-semibold sm:ml-4">
-                    Destination: {getCityLabel(formData.to)}
-                  </span>
-                ) : (
-                  <span className="text-gray-400 sm:ml-4">Select Destination</span>
-                )}
-              </div>
+            <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  reverseFromTo();
-                }}
-                className="shrink-0 p-1.5 bg-white border border-violet-200 hover:bg-violet-100 rounded-full shadow-sm transition"
+                onClick={() => setShowLocationPicker(true)}
+                className="flex-1 border border-gray-300 rounded-xl px-4 py-2 shadow-inner text-left"
+              >
+                <div className="flex flex-col sm:flex-row justify-between text-sm text-gray-700">
+                  <span className="text-violet-600 font-medium">{formData.from || "Select Origin"}</span>
+                  <span className="text-indigo-600 font-medium sm:ml-4 mt-1 sm:mt-0">
+                    {formData.to || "Select Destination"}
+                  </span>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={reverseFromTo}
+                className="p-2 bg-white border border-violet-300 hover:bg-violet-100 rounded-full"
                 title="Reverse Route"
               >
-                <Repeat size={16} className="text-violet-700" />
+                <Repeat size={18} className="text-violet-600" />
               </button>
-            </button>
+            </div>
           </div>
 
-          {/* Departure & Arrival Time */}
-          {["departureTime", "arrivalTime"].map((name) => (
-            <div key={name}>
-              <label className="text-sm text-gray-600 flex items-center gap-1 mb-1">
-                <CalendarDays size={16} className="text-violet-500" />
-                {name === "departureTime" ? "Departure Time" : "Arrival Time"}
-              </label>
-              <DatePicker
-                selected={formData[name] ? new Date(formData[name]) : null}
-                onChange={(date) =>
-                  setFormData((prev) => ({ ...prev, [name]: date ? new Date(date).toISOString() : "" }))
-                }
-                showTimeSelect
-                timeFormat="HH:mm"
-                timeIntervals={15}
-                dateFormat="yyyy-MM-dd HH:mm"
-                placeholderText={`Select ${name === "departureTime" ? "departure" : "arrival"} time`}
-                className="w-full mt-1 p-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500"
-              />
-            </div>
-          ))}
+          {/* Date & Time Pickers */}
+          <div>
+            <label className="text-sm text-gray-600 flex items-center gap-1 mb-1">
+              <CalendarDays size={16} className="text-violet-500" /> Departure Time
+            </label>
+            <DatePicker
+              selected={formData.departureTime}
+              onChange={(date) => handleDateChange("departureTime", date)}
+              showTimeSelect
+              timeFormat="HH:mm"
+              timeIntervals={15}
+              dateFormat="MMMM d, yyyy h:mm aa"
+              minDate={new Date()}
+              className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500"
+              placeholderText="Select Departure"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm text-gray-600 flex items-center gap-1 mb-1">
+              <CalendarDays size={16} className="text-violet-500" /> Arrival Time
+            </label>
+            <DatePicker
+              selected={formData.arrivalTime}
+              onChange={(date) => handleDateChange("arrivalTime", date)}
+              showTimeSelect
+              timeFormat="HH:mm"
+              timeIntervals={15}
+              dateFormat="MMMM d, yyyy h:mm aa"
+              minDate={formData.departureTime || new Date()}
+              className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500"
+              placeholderText="Select Arrival"
+            />
+          </div>
 
           {/* Status */}
           <div>
@@ -174,18 +211,17 @@ const AddFlightModal = ({ isOpen, onClose, onSubmit }) => {
               value={formData.status}
               onChange={handleChange}
               disabled={loading}
-              className="w-full mt-1 p-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="w-full mt-1 px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500"
             >
-              {["On Time", "Delayed", "Cancelled", "Completed"].map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
-              ))}
+              <option value="On Time">On Time</option>
+              <option value="Delayed">Delayed</option>
+              <option value="Cancelled">Cancelled</option>
+              <option value="Completed">Completed</option>
             </select>
           </div>
 
-          {/* Submit Button */}
-          <div className="sm:col-span-2 flex justify-end pt-2">
+          {/* Submit */}
+          <div className="sm:col-span-2 flex justify-end pt-4">
             <button
               type="submit"
               disabled={loading}
