@@ -11,67 +11,66 @@ const FlightCard = ({ flight, isSelected, onSelect, viewFlightDetails }) => {
 
   return (
     <div
-      className={`bg-white rounded shadow p-4 flex flex-col md:flex-row justify-between items-center gap-4 cursor-pointer transition border-2 ${
-        isSelected ? "border-violet-600 bg-violet-50" : "border-transparent hover:border-violet-300"
-      }`}
+      className={`w-full bg-white/70 backdrop-blur-xl border ${
+        isSelected ? "border-violet-600 bg-violet-50/70" : "border-violet-200 hover:border-violet-400"
+      } rounded-2xl shadow-md hover:shadow-lg hover:scale-[1.01] transition-all duration-300 flex flex-col gap-4 p-5 sm:p-6`}
       onClick={handleClick}
     >
-      <div className="flex items-center gap-4 w-full md:w-1/4">
-        <img src={flight.logo || "/default-logo.png"} alt={flight.airline} className="h-10 w-10 object-contain" />
-        <div>
-          <p className="font-bold text-violet-600">{flight.airline}</p>
-          <p className="text-sm text-gray-500">{flight.flightNumber}</p>
+      {/* Top Row: Airline and Route */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        {/* Airline */}
+        <div className="flex items-center gap-4">
+          <img src={flight.logo || "/default-logo.png"} alt={flight.airline} className="h-10 w-10 object-contain" />
+          <div>
+            <p className="font-semibold text-violet-700">{flight.airline}</p>
+            <p className="text-xs text-gray-500">{flight.flightNumber}</p>
+          </div>
+        </div>
+
+        {/* Route + Times */}
+        <div className="text-sm text-gray-800 text-center sm:text-right">
+          <p className="font-medium">
+            {new Date(flight.departureTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} →{" "}
+            {new Date(flight.arrivalTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+          </p>
+          <p className="text-gray-500">
+            {flight.from} → {flight.to}
+          </p>
         </div>
       </div>
 
-      <div className="text-center w-full md:w-1/4">
-        <p className="text-gray-700 font-medium">
-          {new Date(flight.departureTime).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}{" "}
-          →{" "}
-          {new Date(flight.arrivalTime).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </p>
-        <p className="text-sm text-gray-500">
-          {flight.from} → {flight.to}
-        </p>
-      </div>
+      {/* Bottom Row: Price, Seats, Button */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mt-2">
+        {/* Available Seats */}
+        <div className="text-center sm:text-left">
+          <p className="text-sm text-gray-500">Available Seats</p>
+          <p className="font-semibold text-gray-800">{flight.availableSeats}</p>
+        </div>
 
-      <div className="text-center w-full md:w-1/6">
-        <p className="text-sm text-gray-600">Seat Capacity</p>
-        <p className="font-medium">{flight.seatCapacity}</p>
-      </div>
+        {/* Price */}
+        <div className="text-center sm:text-left">
+          <p className="text-sm text-gray-500">Price</p>
+          <p className="font-bold text-green-600 text-lg">₱{flight.price.toLocaleString()}</p>
+        </div>
 
-      <div className="text-center w-full md:w-1/6">
-        <p className="text-sm text-gray-600">Available Seats</p>
-        <p className="font-medium">{flight.availableSeats}</p>
-      </div>
-
-      <div className="text-center w-full md:w-1/6">
-        <p className="text-sm text-gray-600">Price</p>
-        <p className="font-bold text-green-600">₱{flight.price.toLocaleString()}</p>
-      </div>
-
-      <div className="w-full md:w-auto">
-        <button
-          className={`px-4 py-2 rounded w-full transition ${
-            onSelect
-              ? isSelected
-                ? "bg-violet-800 text-white"
-                : "bg-violet-600 text-white hover:bg-violet-700"
-              : "bg-violet-600 text-white hover:bg-violet-700"
-          }`}
-          onClick={(e) => {
-            e.stopPropagation();
-            handleClick();
-          }}
-        >
-          {onSelect ? (isSelected ? "Selected" : "Select") : "View Details"}
-        </button>
+        {/* Button */}
+        <div className="text-center sm:text-right">
+          <button
+            className={`w-full sm:w-auto px-5 py-2 rounded-xl font-medium transition ${
+              onSelect
+                ? isSelected
+                  ? "bg-violet-800 text-white"
+                  : "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white"
+                : "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white"
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleClick();
+            }}
+          >
+            {onSelect ? (isSelected ? "Selected" : "Select") : "View Details"}
+          </button>
+        </div>
       </div>
     </div>
   );

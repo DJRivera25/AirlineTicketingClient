@@ -68,8 +68,8 @@ const Home = () => {
       <HeroSection />
       <div className="relative z-10 p-6 max-w-7xl mx-auto space-y-16">
         <FlightSearchForm form={form} handleChange={handleChange} handleSearch={handleSearch} />
-        <Footer />
       </div>
+      <Footer />
     </>
   );
 };

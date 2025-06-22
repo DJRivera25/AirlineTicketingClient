@@ -58,7 +58,8 @@ const FlightResults = () => {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="px-4 sm:px-6 md:px-8 max-w-screen-xl mx-auto space-y-6 py-6">
+      {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold text-violet-700">Flight Results</h1>
         <button onClick={goToHomepage} className="text-sm text-violet-600 underline hover:text-violet-800">
@@ -66,8 +67,8 @@ const FlightResults = () => {
         </button>
       </div>
 
-      {/* Filter & Sort Bar */}
-      <div className="bg-white p-4 rounded-xl shadow flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      {/* Sort & Filter */}
+      <div className="bg-white/70 backdrop-blur-2xl border border-violet-200 rounded-3xl shadow-md p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex gap-4 flex-wrap items-center">
           <select className="border rounded-md px-3 py-2 shadow-sm text-sm focus:ring-violet-500 focus:border-violet-500">
             <option>All Airlines</option>
@@ -101,9 +102,10 @@ const FlightResults = () => {
 
       {/* Flight Cards */}
       {roundTrip ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl p-4 shadow">
-            <h2 className="text-lg font-semibold text-violet-700 mb-4 border-b pb-2">Select Outbound Flight</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Outbound Flights */}
+          <div className="bg-white/70 backdrop-blur-2xl border border-violet-200 rounded-3xl shadow-md p-6">
+            <h2 className="text-xl font-semibold text-violet-700 mb-4 border-b pb-2">Select Outbound Flight</h2>
             {outboundFlights.length > 0 ? (
               outboundFlights.map((flight) => (
                 <FlightCard
@@ -118,8 +120,9 @@ const FlightResults = () => {
             )}
           </div>
 
-          <div className="bg-white rounded-xl p-4 shadow">
-            <h2 className="text-lg font-semibold text-violet-700 mb-4 border-b pb-2">Select Return Flight</h2>
+          {/* Return Flights */}
+          <div className="bg-white/70 backdrop-blur-2xl border border-violet-200 rounded-3xl shadow-md p-6">
+            <h2 className="text-xl font-semibold text-violet-700 mb-4 border-b pb-2">Select Return Flight</h2>
             {returnFlights.length > 0 ? (
               returnFlights.map((flight) => (
                 <FlightCard
@@ -135,8 +138,8 @@ const FlightResults = () => {
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-xl p-4 shadow">
-          <h2 className="text-lg font-semibold text-violet-700 mb-4 border-b pb-2">Select Your Flight</h2>
+        <div className="bg-white/70 backdrop-blur-2xl border border-violet-200 rounded-3xl shadow-md p-6">
+          <h2 className="text-xl font-semibold text-violet-700 mb-4 border-b pb-2">Select Your Flight</h2>
           {outboundFlights.length > 0 ? (
             outboundFlights.map((flight) => (
               <FlightCard key={flight._id} flight={flight} onSelect={() => handleFlightSelect(flight, "oneway")} />
@@ -152,7 +155,7 @@ const FlightResults = () => {
         <div className="fixed bottom-6 left-0 right-0 flex justify-center z-50">
           <button
             onClick={handleContinue}
-            className="bg-violet-700 hover:bg-violet-800 text-white font-semibold px-6 py-3 rounded-full shadow-lg transition duration-200"
+            className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-semibold px-8 py-3 rounded-full shadow-lg hover:shadow-indigo-400/50 transition-all duration-300"
           >
             Continue to Summary
           </button>

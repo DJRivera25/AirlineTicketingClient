@@ -5,7 +5,7 @@ import { User, CheckCircle, XCircle } from "lucide-react";
 
 const SeatMap = ({ seats, onSeatClick, selectedSeatNumbers = [] }) => {
   if (!seats || seats.length === 0) {
-    return <p className="text-center text-gray-400 text-lg font-medium mt-10">No seats available for this flight.</p>;
+    return <p className="text-center text-gray-400 text-sm mt-6">No seats available for this flight.</p>;
   }
 
   const seatsPerRow = 6;
@@ -24,34 +24,35 @@ const SeatMap = ({ seats, onSeatClick, selectedSeatNumbers = [] }) => {
       const isBooked = seat.isBooked;
       const isSelected = selectedSeatNumbers.includes(seat.seatNumber);
 
-      // 🎨 Color scheme adjustments
-      let baseColor = "bg-violet-500 text-white";
-      if (isBooked) baseColor = "bg-gray-300 text-gray-700 cursor-not-allowed";
-      else if (isSelected) baseColor = "bg-yellow-500 text-white border-2 border-white shadow-xl";
+      let baseColor = "bg-violet-600 text-white";
+      if (isBooked) baseColor = "bg-gray-300 text-gray-500 cursor-not-allowed";
+      else if (isSelected) baseColor = "bg-yellow-400 text-white ring-2 ring-white shadow";
 
       const seatClasses = `
-        w-12 h-12 sm:w-14 sm:h-14
-        rounded-xl flex items-center justify-center 
-        font-bold text-sm sm:text-base
-        transition-all duration-300
+        w-9 h-9 md:w-10 md:h-10
+        rounded-md flex items-center justify-center
+        font-semibold text-[10px] md:text-xs
+        transition-all duration-200
         ${!isBooked ? "hover:scale-105 cursor-pointer" : "opacity-80"}
         ${baseColor}
-        shadow-md
+        shadow-sm
       `;
 
-      const tooltipText = isBooked
-        ? seat.passengerId?.fullName
-          ? `Seat is currently booked`
-          : "Seat is currently booked"
-        : isSelected
-        ? "Selected seat"
-        : "Available seat";
+      const tooltipText = isBooked ? "Seat is booked" : isSelected ? "Selected seat" : "Available seat";
 
       const seatButton = (
         <button
           key={seat._id}
-          disabled={isBooked}
-          onClick={() => !isBooked && onSeatClick(seat.seatNumber)}
+          disabled={isBooked || !onSeatClick}
+          onClick={() => {
+            if (!isBooked && onSeatClick) {
+              if (isSelected) {
+                onSeatClick(null, seat.seatNumber);
+              } else {
+                onSeatClick(seat.seatNumber);
+              }
+            }
+          }}
           className={seatClasses}
           aria-label={`Seat ${seat.seatNumber}`}
         >
@@ -62,60 +63,57 @@ const SeatMap = ({ seats, onSeatClick, selectedSeatNumbers = [] }) => {
       rowSeats.push(
         <Tippy
           key={`tip-${seat._id}`}
-          content={
-            <div className="bg-neutral-900 text-white text-sm font-medium px-3 py-2 rounded-lg shadow-xl backdrop-blur-md">
-              {tooltipText}
-            </div>
-          }
+          content={<div className="bg-neutral-900 text-white text-xs px-2 py-1 rounded shadow">{tooltipText}</div>}
           animation="shift-away"
-          delay={[200, 0]}
+          delay={[100, 0]}
         >
           <div>{seatButton}</div>
         </Tippy>
       );
 
-      // Aisle gap
       if (col === 2) {
-        rowSeats.push(<div key={`aisle-${row}`} className="w-4 sm:w-6 h-6 border-l border-gray-300 opacity-50" />);
+        rowSeats.push(<div key={`aisle-${row}-${col}`} className="w-2" />);
       }
     }
 
     seatMap.push(
-      <div key={`row-${row}`} className="flex gap-2 sm:gap-4 justify-center items-center mb-3">
+      <div key={`row-${row}`} className="flex gap-1 md:gap-2 justify-center mb-1">
         {rowSeats}
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto mt-10 px-4">
+    <div className="w-full max-w-2xl mx-auto mt-4 px-2">
       {/* Title */}
-      <h2 className="text-2xl sm:text-3xl font-bold text-center text-violet-700 mb-6 tracking-tight">
-        Select Your Seat
+      <h2 className="text-lg md:text-xl font-semibold text-center text-violet-700 mb-2">
+        {onSeatClick ? "Select Your Seat" : "Seat Preview"}
       </h2>
 
       {/* Legend */}
-      <div className="flex justify-center gap-6 sm:gap-10 mb-6 text-sm sm:text-base font-medium">
-        <Legend icon={<CheckCircle className="text-violet-500 w-5 h-5" />} label="Available" />
-        <Legend icon={<User className="text-yellow-500 w-5 h-5" />} label="Selected" />
-        <Legend icon={<XCircle className="text-gray-400 w-5 h-5" />} label="Booked" />
+      <div className="flex justify-center gap-4 md:gap-6 mb-3 text-xs md:text-sm font-medium">
+        <Legend icon={<CheckCircle className="text-violet-600 w-4 h-4" />} label="Available" />
+        <Legend icon={<User className="text-yellow-400 w-4 h-4" />} label="Selected" />
+        <Legend icon={<XCircle className="text-gray-400 w-4 h-4" />} label="Booked" />
       </div>
 
-      {/* Seat Grid */}
+      {/* Seat Map */}
       <div className="flex flex-col items-center">{seatMap}</div>
 
       {/* Instruction */}
-      <p className="text-center text-gray-600 text-sm sm:text-base mt-6 italic">
-        Tap on an available seat to select. Booked seats are disabled.
-      </p>
+      {onSeatClick && (
+        <p className="text-center text-gray-500 text-xs mt-2 italic">
+          Tap a seat to select. Booked seats are disabled.
+        </p>
+      )}
     </div>
   );
 };
 
 const Legend = ({ icon, label }) => (
-  <div className="flex items-center gap-2">
+  <div className="flex items-center gap-1">
     {icon}
-    <span className="text-gray-700 dark:text-white">{label}</span>
+    <span className="text-gray-700">{label}</span>
   </div>
 );
 

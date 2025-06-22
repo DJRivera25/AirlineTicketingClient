@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { Clipboard } from "lucide-react";
 import axios from "axios";
 import UserContext from "../context/UserContext";
 import dayjs from "dayjs";
@@ -154,8 +155,6 @@ const AccountPage = () => {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-8">
-      <h1 className="text-4xl font-extrabold text-violet-700 tracking-tight text-center">✈️ My Bookings</h1>
-
       {/* Tabs */}
       <div className="flex justify-around gap-3 text-sm border-b pb-3">
         {TABS.map((t) => {

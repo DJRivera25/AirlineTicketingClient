@@ -1,17 +1,20 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { Menu, X, User, LogOut, User2 } from "lucide-react";
 import UserContext from "../context/UserContext";
 import logo3 from "../assets/logo3.png";
+import logo4 from "../assets/logo4.png";
 
 const UserNavbar = () => {
   const { user, unsetUser, setToken } = useContext(UserContext);
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Delayed check to prevent early render mismatch
+  const isHome = location.pathname === "/";
   const isLoggedIn = !!user?.id;
 
   const handleLogout = () => {
@@ -20,7 +23,6 @@ const UserNavbar = () => {
     navigate("/login");
   };
 
-  // Close dropdown if clicking outside
   useEffect(() => {
     const closeDropdown = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -31,23 +33,43 @@ const UserNavbar = () => {
     return () => document.removeEventListener("mousedown", closeDropdown);
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 120);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const navLinkClass = ({ isActive }) =>
-    isActive ? "text-violet-700 font-semibold" : "text-gray-700 hover:text-violet-700 transition";
+    `${isHome && !scrolled ? "text-white" : "text-gray-700"} ${
+      isActive ? "font-semibold" : "hover:text-violet-700"
+    } transition`;
 
   return (
-    <header className="fixed top-0 left-0 w-full z-50 bg-white/70 backdrop-blur-md border-b border-gray-200 shadow-md transition-all duration-300">
+    <header
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+        isHome && !scrolled ? "bg-transparent text-white" : "bg-white/70 backdrop-blur-md text-gray-800 shadow-md"
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-5 py-4 flex items-center justify-between w-full">
         {/* Logo + Brand */}
         <Link to="/" className="flex items-center gap-3 min-w-[250px]">
           <div className="h-10 w-10">
-            <img src={logo3} alt="Logo" className="h-full w-full object-contain object-center" />
+            <img
+              src={isHome && !scrolled ? logo4 : logo3}
+              alt="Logo"
+              className="h-full w-full object-contain object-center"
+            />
           </div>
-          <span className="text-xl font-extrabold tracking-wide text-violet-700">
-            Tiket <span className="text-violet-500">Lakwatsero</span>
+          <span
+            className={`text-xl font-extrabold tracking-wide ${isHome && !scrolled ? "text-white" : "text-violet-700"}`}
+          >
+            Tiket <span className={isHome && !scrolled ? "text-indigo-300" : "text-violet-500"}>Lakwatsero</span>
           </span>
         </Link>
 
-        {/* Nav Links (center) */}
+        {/* Center Nav Links */}
         <div className="hidden md:flex items-center justify-center gap-6 flex-1">
           <NavLink to="/" className={navLinkClass}>
             Home
@@ -68,13 +90,21 @@ const UserNavbar = () => {
             <>
               <NavLink
                 to="/login"
-                className="border border-violet-600 text-violet-700 font-medium px-4 py-1.5 rounded-md hover:bg-violet-50 transition"
+                className={`border ${
+                  isHome && !scrolled
+                    ? "border-white text-white hover:bg-white/10"
+                    : "border-violet-600 text-violet-700 hover:bg-violet-50"
+                } font-medium px-4 py-1.5 rounded-md transition`}
               >
                 Login
               </NavLink>
               <NavLink
                 to="/register"
-                className="bg-violet-600 text-white font-semibold px-4 py-1.5 rounded-md hover:bg-violet-700 transition"
+                className={`${
+                  isHome && !scrolled
+                    ? "bg-white text-violet-700 hover:bg-violet-100"
+                    : "bg-violet-600 text-white hover:bg-violet-700"
+                } font-semibold px-4 py-1.5 rounded-md transition`}
               >
                 Sign Up
               </NavLink>
@@ -87,8 +117,12 @@ const UserNavbar = () => {
               ref={dropdownRef}
             >
               <div className="flex items-center gap-2 px-3 py-2 rounded hover:bg-violet-100 transition cursor-pointer">
-                <User2 size={20} className="text-violet-700" />
-                <span className="hidden sm:inline font-medium text-gray-800">{user.fullName}</span>
+                <User2 size={20} className={isHome && !scrolled ? "text-white" : "text-violet-700"} />
+                <span
+                  className={`hidden sm:inline font-medium ${isHome && !scrolled ? "text-white" : "text-gray-800"}`}
+                >
+                  {user.fullName}
+                </span>
               </div>
 
               {dropdownOpen && (
@@ -124,27 +158,31 @@ const UserNavbar = () => {
         </div>
 
         {/* Mobile menu button */}
-        <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden text-violet-700" aria-label="Toggle Menu">
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          className={`${isHome && !scrolled ? "text-white" : "text-violet-700"} md:hidden`}
+          aria-label="Toggle Menu"
+        >
           {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
       </div>
 
       {/* Mobile Menu */}
       <div
-        className={`md:hidden bg-white text-gray-800 px-4 pt-2 pb-4 space-y-2 transition-all duration-300 ease-in-out ${
+        className={`md:hidden bg-white border-t border-gray-200 text-gray-800 px-6 pt-4 pb-6 space-y-3 shadow-md transition-all duration-300 ease-in-out ${
           menuOpen ? "max-h-screen opacity-100" : "max-h-0 overflow-hidden opacity-0"
         }`}
       >
-        <NavLink to="/" onClick={() => setMenuOpen(false)} className="block hover:text-violet-600">
+        <NavLink to="/" onClick={() => setMenuOpen(false)} className="block hover:text-violet-600 font-medium">
           Home
         </NavLink>
-        <NavLink to="/flights" onClick={() => setMenuOpen(false)} className="block hover:text-violet-600">
+        <NavLink to="/flights" onClick={() => setMenuOpen(false)} className="block hover:text-violet-600 font-medium">
           Search Flights
         </NavLink>
-        <NavLink to="/check-in" onClick={() => setMenuOpen(false)} className="block hover:text-violet-600">
+        <NavLink to="/check-in" onClick={() => setMenuOpen(false)} className="block hover:text-violet-600 font-medium">
           Check-In
         </NavLink>
-        <NavLink to="/support" onClick={() => setMenuOpen(false)} className="block hover:text-violet-600">
+        <NavLink to="/support" onClick={() => setMenuOpen(false)} className="block hover:text-violet-600 font-medium">
           Support
         </NavLink>
 

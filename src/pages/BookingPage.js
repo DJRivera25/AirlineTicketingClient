@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Loader, PlaneTakeoff, PlaneLanding, AlertTriangle, Users, Mail, Phone } from "lucide-react";
+import { Loader, PlaneTakeoff, PlaneLanding, AlertTriangle, Users, Mail, Phone, CheckCircle } from "lucide-react";
 import { toast } from "react-toastify";
 import UserContext from "../context/UserContext";
 import SeatMap from "../components/SeatMap";
@@ -17,9 +17,18 @@ const BookingPage = () => {
   const [returnFlight, setReturnFlight] = useState(null);
   const [outboundSeatNumbers, setoutboundSeatNumbers] = useState([]);
   const [returnSeatNumbers, setreturnSeatNumbers] = useState([]);
-  const [form, setForm] = useState({ fullName: "", email: "", phone: "", passengerCount: 1 });
+  const [form, setForm] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    passengerCount: 1,
+  });
   const [passengers, setPassengers] = useState([]);
-
+  const updatePassenger = (index, field, value) => {
+    const updated = [...passengers];
+    updated[index][field] = value;
+    setPassengers(updated);
+  };
   useEffect(() => {
     const fetch = async () => {
       try {
@@ -62,35 +71,32 @@ const BookingPage = () => {
     fetch();
   }, [outboundId, returnId, user]);
 
-  const handleSeatSelection = (flightType, seatNumber) => {
+  const handleSeatSelection = (flightType, seatNumber, unselectSeatNumber) => {
     const seatKey = `${flightType}SeatNumber`;
-    const seats = flightType === "outbound" ? [...outboundSeatNumbers] : [...returnSeatNumbers];
+    const updatedPassengers = [...passengers];
 
-    const updatedSeats = seats.map((seat) => {
-      if (seat.seatNumber === seatNumber) {
-        if (seat.isBooked) {
-          toast.warn("Seat already booked.");
-          return seat;
-        }
-
-        const alreadySelected = passengers.some((p) => p[seatKey] === seatNumber);
-        if (alreadySelected) {
-          toast.warn("Seat already selected.");
-          return seat;
-        }
-
-        const updatedPassengers = [...passengers];
-        const idx = updatedPassengers.findIndex((p) => !p[seatKey]);
-        if (idx !== -1) {
-          updatedPassengers[idx][seatKey] = seatNumber;
-          setPassengers(updatedPassengers);
-        }
+    if (!seatNumber && unselectSeatNumber) {
+      const passengerIndex = updatedPassengers.findIndex((p) => p[seatKey] === unselectSeatNumber);
+      if (passengerIndex !== -1) {
+        updatedPassengers[passengerIndex][seatKey] = "";
+        setPassengers(updatedPassengers);
       }
-      return seat;
-    });
+      return;
+    }
 
-    if (flightType === "outbound") setoutboundSeatNumbers(updatedSeats);
-    else setreturnSeatNumbers(updatedSeats);
+    const alreadyAssigned = passengers.find((p) => p[seatKey] === seatNumber);
+    if (alreadyAssigned) {
+      toast.warn("Seat already selected.");
+      return;
+    }
+
+    const firstUnassignedIndex = updatedPassengers.findIndex((p) => !p[seatKey]);
+    if (firstUnassignedIndex !== -1) {
+      updatedPassengers[firstUnassignedIndex][seatKey] = seatNumber;
+      setPassengers(updatedPassengers);
+    } else {
+      toast.warn("All passengers already have assigned seats.");
+    }
   };
 
   const handleCountChange = (e) => {
@@ -184,7 +190,7 @@ const BookingPage = () => {
             { label: "Passengers", field: "passengerCount", icon: Users },
           ].map(({ label, field, icon: Icon }) => (
             <div key={field}>
-              <label className="block text-sm font-medium text-gray-600">{label}</label>
+              <label className="block text-sm font-medium text-violet-700">{label}</label>
               <div className="relative">
                 <input
                   type={field === "email" ? "email" : field === "passengerCount" ? "number" : "text"}
@@ -206,22 +212,37 @@ const BookingPage = () => {
 
       {/* Seat Selection */}
       <div className="bg-white p-6 rounded-lg shadow-md space-y-6 border border-gray-200">
-        <h2 className="text-xl font-semibold text-violet-800">Seat Selection</h2>
+        <h2 className="text-xl font-semibold text-violet-800 text-center">
+          {" "}
+          <CheckCircle className="inline-block mr-2 text-violet-600" /> Seat Selection
+        </h2>
         <div className={`grid gap-6 ${returnFlight ? "md:grid-cols-2" : "justify-center"}`}>
           <div className={`${returnFlight ? "" : "md:col-span-2 max-w-xl mx-auto"}`}>
-            <label className={`${returnFlight ? "block font-semibold mb-2" : "hidden"}`}>Outbound Seats</label>
+            <label className={`text-center ${returnFlight ? "block font-semibold mb-2" : "hidden"}`}>
+              {" "}
+              <PlaneTakeoff className="inline-block mr-2 text-violet-600" />
+              <strong className="text-violet-800 text-center">Outbound </strong>{" "}
+            </label>
             <SeatMap
               seats={outboundSeatNumbers}
-              onSeatClick={(seatNumber) => handleSeatSelection("outbound", seatNumber)}
+              onSeatClick={(seatNumber, unselectSeatNumber) =>
+                handleSeatSelection("outbound", seatNumber, unselectSeatNumber)
+              }
               selectedSeatNumbers={passengers.map((p) => p.outboundSeatNumber)}
             />
           </div>
           {returnFlight && (
             <div>
-              <label className="block font-semibold mb-2">Return Seats</label>
+              <label className="block font-semibold mb-2 text-center">
+                {" "}
+                <PlaneLanding className="inline-block mr-2 text-violet-600" />
+                <strong className="text-violet-800 ">Return </strong>{" "}
+              </label>
               <SeatMap
                 seats={returnSeatNumbers}
-                onSeatClick={(seatNumber) => handleSeatSelection("return", seatNumber)}
+                onSeatClick={(seatNumber, unselectSeatNumber) =>
+                  handleSeatSelection("return", seatNumber, unselectSeatNumber)
+                }
                 selectedSeatNumbers={passengers.map((p) => p.returnSeatNumber)}
               />
             </div>
@@ -230,13 +251,15 @@ const BookingPage = () => {
       </div>
 
       {/* Passenger Info */}
-      <div className="bg-white p-6 rounded-xl shadow space-y-6">
-        <h3 className="font-semibold text-2xl text-gray-800 border-b pb-2">✈️ Passenger Information</h3>
+      <div className="bg-white p-6 rounded-xl shadow space-y-6 border border-violet-300">
+        <h3 className="font-semibold text-2xl text-violet-800 border-b border-violet-200 pb-2">
+          Passenger Information
+        </h3>
         <div className="space-y-8">
           {passengers.map((p, index) => (
             <div
               key={index}
-              className="border border-gray-200 rounded-xl p-5 bg-gray-50 shadow-sm hover:shadow-md transition-all"
+              className="border border-violet-300 rounded-xl p-5 bg-white shadow-sm hover:shadow-md transition-all"
             >
               <div className="flex justify-between items-center mb-4">
                 <h4 className="text-lg font-semibold text-violet-700">
@@ -245,71 +268,39 @@ const BookingPage = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Full Name</label>
-                  <input
-                    type="text"
-                    value={p.fullName}
-                    onChange={(e) => {
-                      const updated = [...passengers];
-                      updated[index].fullName = e.target.value;
-                      setPassengers(updated);
-                    }}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
-                    placeholder="e.g. Juan Dela Cruz"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Birthdate</label>
-                  <input
-                    type="date"
-                    value={p.birthdate}
-                    onChange={(e) => {
-                      const updated = [...passengers];
-                      updated[index].birthdate = e.target.value;
-                      setPassengers(updated);
-                    }}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Passport Number</label>
-                  <input
-                    type="text"
-                    value={p.passportNumber}
-                    onChange={(e) => {
-                      const updated = [...passengers];
-                      updated[index].passportNumber = e.target.value;
-                      setPassengers(updated);
-                    }}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
-                    placeholder="e.g. P1234567"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Nationality</label>
-                  <input
-                    type="text"
-                    value={p.nationality}
-                    onChange={(e) => {
-                      const updated = [...passengers];
-                      updated[index].nationality = e.target.value;
-                      setPassengers(updated);
-                    }}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
-                    placeholder="e.g. Filipino"
-                  />
-                </div>
+                <InputField
+                  label="Full Name"
+                  value={p.fullName}
+                  onChange={(val) => updatePassenger(index, "fullName", val)}
+                  placeholder="e.g. Juan Dela Cruz"
+                />
+                <InputField
+                  label="Birthdate"
+                  type="date"
+                  value={p.birthdate}
+                  onChange={(val) => updatePassenger(index, "birthdate", val)}
+                />
+                <InputField
+                  label="Passport Number"
+                  value={p.passportNumber}
+                  onChange={(val) => updatePassenger(index, "passportNumber", val)}
+                  placeholder="e.g. P1234567"
+                />
+                <InputField
+                  label="Nationality"
+                  value={p.nationality}
+                  onChange={(val) => updatePassenger(index, "nationality", val)}
+                  placeholder="e.g. Filipino"
+                />
               </div>
 
-              {/* Seat Summary */}
               <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
-                <div className="p-3 bg-white border border-gray-200 rounded-lg">
+                <div className="p-3 bg-white border border-violet-200 rounded-lg">
                   <span className="font-semibold block text-gray-500">Outbound Seat</span>
                   <span className="text-violet-700 font-bold">{p.outboundSeatNumber || "Not selected"}</span>
                 </div>
                 {returnId && (
-                  <div className="p-3 bg-white border border-gray-200 rounded-lg">
+                  <div className="p-3 bg-white border border-violet-200 rounded-lg">
                     <span className="font-semibold block text-gray-500">Return Seat</span>
                     <span className="text-violet-700 font-bold">{p.returnSeatNumber || "Not selected"}</span>
                   </div>
@@ -330,12 +321,25 @@ const BookingPage = () => {
       {/* Confirm Button */}
       <button
         onClick={handleBooking}
-        className="w-full py-3 text-lg font-semibold bg-violet-700 hover:bg-violet-800 text-white rounded-md transition duration-200"
+        className="w-full py-3 text-lg font-semibold text-white rounded-md transition duration-200 bg-gradient-to-r from-violet-600 via-violet-700 to-indigo-800 hover:from-violet-700 hover:to-indigo-900 shadow-md"
       >
         Confirm & Proceed
       </button>
     </div>
   );
 };
+
+const InputField = ({ label, value, onChange, type = "text", placeholder }) => (
+  <div>
+    <label className="block text-sm font-medium text-violet-700 mb-1">{label}</label>
+    <input
+      type={type}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+    />
+  </div>
+);
 
 export default BookingPage;

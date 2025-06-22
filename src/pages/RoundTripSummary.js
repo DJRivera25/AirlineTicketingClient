@@ -9,41 +9,35 @@ const RoundTripSummary = () => {
   const navigate = useNavigate();
   const { selectedOutbound, selectedReturn } = state || {};
 
-  const [outboundSeatNumberMap, setoutboundSeatNumberMap] = useState([]);
-  const [returnSeatNumberMap, setreturnSeatNumberMap] = useState([]);
+  const [outboundSeatNumberMap, setOutboundSeatNumberMap] = useState([]);
+  const [returnSeatNumberMap, setReturnSeatNumberMap] = useState([]);
 
   const formatDate = (datetime) => new Date(datetime).toLocaleString();
-
-  const calculateDuration = (departure, arrival) => {
-    const dep = new Date(departure);
-    const arr = new Date(arrival);
-    const diff = arr - dep;
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    return `${hours}h ${minutes}m`;
-  };
 
   const goBackToSearch = () => navigate("/flights");
 
   const continueToBooking = () => {
-    const outboundId = selectedOutbound._id;
-    const returnId = selectedReturn._id;
-    navigate(`/booking/${outboundId}/${returnId}`);
+    navigate(`/booking/${selectedOutbound._id}/${selectedReturn._id}`);
   };
 
   useEffect(() => {
-    if (selectedOutbound?._id) {
-      axios
-        .get(`${process.env.REACT_APP_API_BASEURL}/seats/flight/${selectedOutbound._id}`)
-        .then((res) => setoutboundSeatNumberMap(res.data))
-        .catch(() => setoutboundSeatNumberMap([]));
-    }
-    if (selectedReturn?._id) {
-      axios
-        .get(`${process.env.REACT_APP_API_BASEURL}/seats/flight/${selectedReturn._id}`)
-        .then((res) => setreturnSeatNumberMap(res.data))
-        .catch(() => setreturnSeatNumberMap([]));
-    }
+    const fetchSeats = async () => {
+      try {
+        if (selectedOutbound?._id) {
+          const res = await axios.get(`${process.env.REACT_APP_API_BASEURL}/seats/flight/${selectedOutbound._id}`);
+          setOutboundSeatNumberMap(res.data);
+        }
+        if (selectedReturn?._id) {
+          const res = await axios.get(`${process.env.REACT_APP_API_BASEURL}/seats/flight/${selectedReturn._id}`);
+          setReturnSeatNumberMap(res.data);
+        }
+      } catch (error) {
+        setOutboundSeatNumberMap([]);
+        setReturnSeatNumberMap([]);
+      }
+    };
+
+    fetchSeats();
   }, [selectedOutbound, selectedReturn]);
 
   if (!selectedOutbound || !selectedReturn) {
@@ -51,11 +45,9 @@ const RoundTripSummary = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-10">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-violet-700 flex items-center gap-2">
-          <Plane className="w-6 h-6" /> Roundtrip Summary
-        </h1>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-3xl md:text-4xl font-extrabold text-violet-800 tracking-tight">Roundtrip Summary</h1>
         <button
           onClick={goBackToSearch}
           className="text-sm flex items-center gap-1 text-violet-600 hover:text-violet-800 underline"
@@ -64,149 +56,62 @@ const RoundTripSummary = () => {
         </button>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* Outbound */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-6">
-          <div className="bg-white p-6 shadow-lg rounded-xl border space-y-2">
-            <h2 className="text-lg font-semibold text-violet-600 flex items-center gap-2">
-              <MapPin size={18} /> Outbound Flight
-            </h2>
-            <p>
-              <strong>From:</strong> {selectedOutbound.from}
-            </p>
-            <p>
-              <strong>To:</strong> {selectedOutbound.to}
-            </p>
-            <p>
-              <strong>Departure:</strong> {formatDate(selectedOutbound.departureTime)}
-            </p>
-            <p>
-              <strong>Arrival:</strong> {formatDate(selectedOutbound.arrivalTime)}
-            </p>
-            <p>
-              <strong>Airline:</strong> {selectedOutbound.airline}
-            </p>
-            <p>
-              <strong>Price:</strong> ₱{selectedOutbound.price.toLocaleString()}
-            </p>
-            <p className="text-sm text-gray-700">
-              <Clock className="inline w-4 h-4" /> <strong>Duration:</strong>{" "}
-              {calculateDuration(selectedOutbound.departureTime, selectedOutbound.arrivalTime)}
-            </p>
-          </div>
-
-          <div className="bg-white p-6 shadow-lg rounded-xl border space-y-2">
-            <h2 className="text-lg font-semibold text-violet-600 flex items-center gap-2">
-              <Plane size={18} /> Aircraft Info
-            </h2>
-            <p>
-              <strong>Model:</strong> {selectedOutbound.aircraft || "N/A"}
-            </p>
-            <p>
-              <strong>Seats Available:</strong> {selectedOutbound.seatCapacity || "N/A"}
-            </p>
-          </div>
-
-          <div className="bg-white p-6 shadow-lg rounded-xl border space-y-2">
-            <h2 className="text-lg font-semibold text-violet-600 flex items-center gap-2">
-              <MapPin size={18} /> Seat Map Preview
-            </h2>
-            <SeatMap seats={outboundSeatNumberMap} onSeatClick={() => {}} />
+          <FlightCard flight={selectedOutbound} title="Outbound Flight" />
+          <AircraftCard flight={selectedOutbound} />
+          <div className="overflow-x-auto">
+            <SeatMap seats={outboundSeatNumberMap} selectedSeatNumbers={[]} onSeatClick={null} />
           </div>
         </div>
 
-        {/* Return */}
         <div className="space-y-6">
-          <div className="bg-white p-6 shadow-lg rounded-xl border space-y-2">
-            <h2 className="text-lg font-semibold text-violet-600 flex items-center gap-2">
-              <MapPin size={18} /> Return Flight
-            </h2>
-            <p>
-              <strong>From:</strong> {selectedReturn.from}
-            </p>
-            <p>
-              <strong>To:</strong> {selectedReturn.to}
-            </p>
-            <p>
-              <strong>Departure:</strong> {formatDate(selectedReturn.departureTime)}
-            </p>
-            <p>
-              <strong>Arrival:</strong> {formatDate(selectedReturn.arrivalTime)}
-            </p>
-            <p>
-              <strong>Airline:</strong> {selectedReturn.airline}
-            </p>
-            <p>
-              <strong>Price:</strong> ₱{selectedReturn.price.toLocaleString()}
-            </p>
-            <p className="text-sm text-gray-700">
-              <Clock className="inline w-4 h-4" /> <strong>Duration:</strong>{" "}
-              {calculateDuration(selectedReturn.departureTime, selectedReturn.arrivalTime)}
-            </p>
-          </div>
-
-          <div className="bg-white p-6 shadow-lg rounded-xl border space-y-2">
-            <h2 className="text-lg font-semibold text-violet-600 flex items-center gap-2">
-              <Plane size={18} /> Aircraft Info
-            </h2>
-            <p>
-              <strong>Model:</strong> {selectedReturn.aircraft || "N/A"}
-            </p>
-            <p>
-              <strong>Seats Available:</strong> {selectedReturn.seatCapacity || "N/A"}
-            </p>
-          </div>
-
-          <div className="bg-white p-6 shadow-lg rounded-xl border space-y-2">
-            <h2 className="text-lg font-semibold text-violet-600 flex items-center gap-2">
-              <MapPin size={18} /> Seat Map Preview
-            </h2>
-            <SeatMap seats={returnSeatNumberMap} onSeatClick={() => {}} />
+          <FlightCard flight={selectedReturn} title="Return Flight" />
+          <AircraftCard flight={selectedReturn} />
+          <div className="overflow-x-auto">
+            <SeatMap seats={returnSeatNumberMap} selectedSeatNumbers={[]} onSeatClick={null} />
           </div>
         </div>
       </div>
 
-      {/* Additional Sections */}
-      <div className="bg-white p-6 shadow-lg rounded-xl border space-y-2">
-        <div className="flex items-center gap-2 text-violet-600 font-semibold text-lg">
-          <Briefcase size={18} /> Baggage Allowance
-        </div>
-        <ul className="list-disc ml-6 space-y-1 text-gray-700">
-          <li>1 carry-on bag (7kg max)</li>
-          <li>1 checked baggage (up to 20kg)</li>
-          <li>Additional baggage fees apply beyond limit</li>
-        </ul>
-      </div>
+      <InfoCard
+        icon={<Briefcase size={18} />}
+        title="Baggage Allowance"
+        items={[
+          "1 carry-on bag (7kg max)",
+          "1 checked baggage (up to 20kg)",
+          "Additional baggage fees apply beyond limit",
+        ]}
+      />
 
-      <div className="bg-white p-6 shadow-lg rounded-xl border space-y-2">
-        <div className="flex items-center gap-2 text-violet-600 font-semibold text-lg">
-          <Info size={18} /> In-flight Services
-        </div>
-        <ul className="list-disc ml-6 space-y-1 text-gray-700">
-          <li>Complimentary meals and beverages</li>
-          <li>Wi-Fi (limited availability)</li>
-          <li>Entertainment system with movies/music</li>
-          <li>Power outlets at each seat</li>
-        </ul>
-      </div>
+      <InfoCard
+        icon={<Info size={18} />}
+        title="In-flight Services"
+        items={[
+          "Complimentary meals and beverages",
+          "Wi-Fi (limited availability)",
+          "Entertainment system with movies/music",
+          "Power outlets at each seat",
+        ]}
+      />
 
-      <div className="bg-white p-6 shadow-lg rounded-xl border space-y-2">
-        <h2 className="text-lg font-semibold text-violet-600 flex items-center gap-2">
-          <Info size={18} /> Reminders & Terms
-        </h2>
-        <ul className="list-disc ml-6 space-y-1 text-sm text-gray-700">
-          <li>Ticket is non-refundable after purchase.</li>
-          <li>Rebooking allowed with applicable fees.</li>
-          <li>Passenger must check in 2 hours before departure.</li>
-          <li>Passport validity must be at least 6 months from travel date.</li>
-          <li>All flight details subject to change without prior notice.</li>
-        </ul>
-      </div>
+      <InfoCard
+        icon={<Info size={18} />}
+        title="Reminders & Terms"
+        items={[
+          "Ticket is non-refundable after purchase.",
+          "Rebooking allowed with applicable fees.",
+          "Passenger must check in 2 hours before departure.",
+          "Passport validity must be at least 6 months from travel date.",
+          "All flight details subject to change without prior notice.",
+        ]}
+        textSize="text-sm"
+      />
 
       <div className="text-right">
         <button
           onClick={continueToBooking}
-          className="bg-violet-600 hover:bg-violet-700 text-white px-6 py-3 rounded-full shadow-lg transition flex items-center gap-2"
+          className="bg-violet-700 hover:bg-violet-800 text-white px-6 py-3 rounded-full shadow-md transition flex items-center gap-2"
         >
           Continue to Booking <ArrowRight size={16} />
         </button>
@@ -214,5 +119,68 @@ const RoundTripSummary = () => {
     </div>
   );
 };
+
+const FlightCard = ({ flight, title }) => (
+  <div className="p-6 bg-white rounded-xl shadow border border-violet-200">
+    <h2 className="text-violet-800 flex items-center gap-2 text-lg font-semibold">
+      <MapPin size={18} /> {title}
+    </h2>
+    <div className="space-y-1 text-sm mt-2">
+      <div>
+        <strong>From:</strong> {flight.from}
+      </div>
+      <div>
+        <strong>To:</strong> {flight.to}
+      </div>
+      <div>
+        <strong>Departure:</strong> {new Date(flight.departureTime).toLocaleString()}
+      </div>
+      <div>
+        <strong>Arrival:</strong> {new Date(flight.arrivalTime).toLocaleString()}
+      </div>
+      <div>
+        <strong>Airline:</strong> {flight.airline}
+      </div>
+      <div>
+        <strong>Price:</strong> ₱{flight.price.toLocaleString()}
+      </div>
+      <div className="flex items-center gap-2 text-gray-700 mt-2">
+        <Clock className="w-4 h-4" />
+        <span className="text-sm">
+          <strong>Duration:</strong> {flight.duration}
+        </span>
+      </div>
+    </div>
+  </div>
+);
+
+const AircraftCard = ({ flight }) => (
+  <div className="p-6 bg-white rounded-xl shadow border border-violet-200">
+    <h2 className="text-violet-800 flex items-center gap-2 text-lg font-semibold">
+      <Plane size={18} /> Aircraft Info
+    </h2>
+    <div className="space-y-1 text-sm mt-2">
+      <div>
+        <strong>Model:</strong> {flight.aircraft || "N/A"}
+      </div>
+      <div>
+        <strong>Seats Available:</strong> {flight.seatCapacity || "N/A"}
+      </div>
+    </div>
+  </div>
+);
+
+const InfoCard = ({ icon, title, items, textSize = "text-base" }) => (
+  <div className="p-6 bg-white rounded-xl shadow border border-violet-200">
+    <h2 className={`text-violet-800 flex items-center gap-2 font-semibold ${textSize}`}>
+      {icon} {title}
+    </h2>
+    <ul className="list-disc ml-5 space-y-1 text-gray-700 mt-2">
+      {items.map((item, index) => (
+        <li key={index}>{item}</li>
+      ))}
+    </ul>
+  </div>
+);
 
 export default RoundTripSummary;
