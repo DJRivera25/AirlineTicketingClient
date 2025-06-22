@@ -33,6 +33,7 @@ import NotFound from "./pages/NotFound";
 
 // Loader Component
 import FullPageLoader from "./pages/FullPageLoader";
+import AdminCalendar from "./pages/AdminCalendar";
 
 function AppContent({ isAdmin }) {
   const location = useLocation();
@@ -44,6 +45,7 @@ function AppContent({ isAdmin }) {
     { path: "/admin/bookings", element: <ManageBookings /> },
     { path: "/admin/users", element: <UserManagement /> },
     { path: "/admin/flights/:id", element: <ManageFlightDetails /> },
+    { path: "/admin/calendar", element: <AdminCalendar /> },
   ];
 
   return (
@@ -67,6 +69,7 @@ function AppContent({ isAdmin }) {
           <Route path="/account/bookings" element={<AccountPage />} />
           <Route path="/profile" element={<UserProfilePage />} />
           <Route path="/support" element={<SupportPage />} />
+
           <Route path="*" element={<NotFound />} />
 
           {/* Admin Routes */}

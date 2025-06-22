@@ -4,6 +4,11 @@
   "description": "Backend server for Tiket Lakwatsero airline ticketing",
   "private": true,
   "dependencies": {
+    "@fullcalendar/common": "^5.11.5",
+    "@fullcalendar/core": "^6.1.17",
+    "@fullcalendar/daygrid": "^6.1.17",
+    "@fullcalendar/interaction": "^6.1.17",
+    "@fullcalendar/react": "^6.1.17",
     "@headlessui/react": "^2.2.4",
     "@heroicons/react": "^2.2.0",
     "@stripe/react-stripe-js": "^3.7.0",
