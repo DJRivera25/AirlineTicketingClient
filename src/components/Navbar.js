@@ -35,7 +35,7 @@ const UserNavbar = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 120);
+      setScrolled(window.scrollY > 300);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -93,18 +93,18 @@ const UserNavbar = () => {
                 className={`border ${
                   isHome && !scrolled
                     ? "border-white text-white hover:bg-white/10"
-                    : "border-violet-600 text-violet-700 hover:bg-violet-50"
+                    : "border-violet-600 text-violet-700  bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white"
                 } font-medium px-4 py-1.5 rounded-md transition`}
               >
                 Login
               </NavLink>
               <NavLink
                 to="/register"
-                className={`${
+                className={`border ${
                   isHome && !scrolled
-                    ? "bg-white text-violet-700 hover:bg-violet-100"
-                    : "bg-violet-600 text-white hover:bg-violet-700"
-                } font-semibold px-4 py-1.5 rounded-md transition`}
+                    ? "border-white text-white hover:bg-white/10"
+                    : "border-violet-600 text-violet-700  bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white"
+                } font-medium px-4 py-1.5 rounded-md transition`}
               >
                 Sign Up
               </NavLink>
