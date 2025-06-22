@@ -33,7 +33,6 @@ const LocationPicker = ({ onClose, onSelectFrom, onSelectTo }) => {
   const [search, setSearch] = useState("");
   const [selectedStep, setSelectedStep] = useState(0); // 0 = Origin, 1 = Destination
   const [tempFrom, setTempFrom] = useState(null);
-  const [tempTo, setTempTo] = useState(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -56,13 +55,11 @@ const LocationPicker = ({ onClose, onSelectFrom, onSelectTo }) => {
     if (selectedStep === 0) {
       setTempFrom(city);
       setSelectedStep(1);
+      setSearch("");
     } else {
-      setTempTo(city);
       onSelectFrom(tempFrom || city);
       onSelectTo(city);
-      // Reset after selection
       setTempFrom(null);
-      setTempTo(null);
       setSelectedStep(0);
       setSearch("");
       onClose();
@@ -72,8 +69,29 @@ const LocationPicker = ({ onClose, onSelectFrom, onSelectTo }) => {
   return (
     <div
       ref={ref}
-      className="absolute top-full mt-2 left-0 w-full bg-white rounded-2xl shadow-2xl border border-gray-200 p-4 z-50 max-h-[400px]"
+      className="absolute top-full mt-2 left-0 w-full bg-white rounded-2xl shadow-xl border border-gray-200 p-4 z-50 max-h-[420px] animate-fade-in-up transition-all duration-300"
     >
+      {/* Header / Step Indicator */}
+      <div className="flex justify-between items-center mb-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
+          {selectedStep === 0 ? (
+            <>
+              <PlaneTakeoff size={16} className="text-violet-600" />
+              Select Origin
+            </>
+          ) : (
+            <>
+              <PlaneLanding size={16} className="text-indigo-600" />
+              Select Destination
+            </>
+          )}
+        </div>
+        <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <X size={18} />
+        </button>
+      </div>
+
+      {/* Search Input */}
       <div className="relative mb-4">
         <SearchIcon className="absolute left-3 top-2.5 text-gray-400" size={18} />
         <input
@@ -81,38 +99,40 @@ const LocationPicker = ({ onClose, onSelectFrom, onSelectTo }) => {
           placeholder="Search city, code, or country..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
         />
       </div>
 
-      <div className="space-y-1 overflow-y-auto max-h-[300px] pr-1">
-        {filteredCities.map((city) => {
-          const isFrom = tempFrom?.code === city.code;
-          const isTo = tempTo?.code === city.code;
-          return (
-            <button
-              type="button" // ✅ Prevents accidental form submission
-              key={city.code}
-              onClick={() => handleSelect(city)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-violet-100 transition text-left w-full ${
-                isFrom || isTo ? "bg-violet-50 font-semibold" : ""
-              }`}
-            >
-              <img src={city.flag} alt={city.country} className="w-5 h-4 rounded-sm" />
-              <span className="flex-1 text-sm">
-                {city.city} ({city.code}) — {city.country}{" "}
-                {isFrom ? <span className="text-violet-600 text-xs">(Origin)</span> : null}
-                {isTo ? <span className="text-indigo-600 text-xs">(Destination)</span> : null}
-              </span>
-            </button>
-          );
-        })}
-        {filteredCities.length === 0 && <p className="text-center text-sm text-gray-500 py-4">No cities found.</p>}
-      </div>
+      {/* City List */}
+      <div className="overflow-y-auto max-h-[300px] pr-1 space-y-1 scroll-smooth">
+        {filteredCities.length > 0 ? (
+          filteredCities.map((city) => {
+            const isFrom = tempFrom?.code === city.code;
+            const isHighlighted = selectedStep === 0 ? isFrom : false;
 
-      <button onClick={onClose} className="absolute top-2 right-2 text-gray-500 hover:text-gray-700">
-        <X size={18} />
-      </button>
+            return (
+              <button
+                type="button"
+                key={city.code}
+                onClick={() => handleSelect(city)}
+                className={`flex items-center gap-3 px-3 py-2 rounded-xl transition text-left w-full ${
+                  isHighlighted ? "bg-violet-50 font-semibold text-violet-700" : "hover:bg-violet-100 text-gray-700"
+                }`}
+              >
+                <img src={city.flag} alt={city.country} className="w-5 h-4 rounded-sm border border-gray-300" />
+                <span className="flex-1 text-sm">
+                  {city.city} ({city.code}) — {city.country}
+                </span>
+                {isFrom && (
+                  <span className="text-xs text-violet-600 bg-violet-100 px-2 py-0.5 rounded-full">Origin</span>
+                )}
+              </button>
+            );
+          })
+        ) : (
+          <p className="text-center text-sm text-gray-500 py-4">No cities found.</p>
+        )}
+      </div>
     </div>
   );
 };
