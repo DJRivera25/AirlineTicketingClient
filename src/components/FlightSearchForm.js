@@ -53,13 +53,17 @@ const FlightSearchForm = ({ form, handleChange }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    const formatDate = (date) => (date instanceof Date && !isNaN(date) ? date.toISOString() : "");
+
     const queryParams = new URLSearchParams({
       from: form.from,
       to: form.to,
-      departure: form.departure?.toISOString() || null,
-      returnDate: form.tripType === "round-trip" && form.return ? form.return?.toISOString() : "" || null,
+      departure: formatDate(form.departure),
+      returnDate: form.tripType === "round-trip" ? formatDate(form.return) : "",
       tripType: form.tripType,
     });
+
     navigate(`/flight-results?${queryParams.toString()}`);
   };
 
@@ -181,7 +185,21 @@ const FlightSearchForm = ({ form, handleChange }) => {
             <div className="col-span-12 md:col-span-3">
               <button
                 type="submit"
-                className="w-full h-[3.2rem] bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-semibold px-6 py-3 rounded-xl shadow-md hover:shadow-indigo-500/50 transition-all duration-300 flex items-center justify-center gap-2"
+                disabled={
+                  !form.from ||
+                  !form.to ||
+                  (form.tripType === "one-way" && !form.departure) ||
+                  (form.tripType === "round-trip" && (!form.departure || !form.return))
+                }
+                className={`w-full h-[3.2rem] rounded-xl font-semibold px-6 py-3 shadow-md flex items-center justify-center gap-2 transition-all duration-300
+    ${
+      !form.from ||
+      !form.to ||
+      (form.tripType === "one-way" && !form.departure) ||
+      (form.tripType === "round-trip" && (!form.departure || !form.return))
+        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+        : "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white hover:shadow-indigo-500/50"
+    }`}
               >
                 <Search className="w-5 h-5" />
                 Search Flights
