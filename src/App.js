@@ -34,6 +34,7 @@ import NotFound from "./pages/NotFound";
 // Loader Component
 import FullPageLoader from "./pages/FullPageLoader";
 import AdminCalendar from "./pages/AdminCalendar";
+import GcashPaymentSuccess from "./pages/GcashPaymentSuccess";
 
 function AppContent({ isAdmin }) {
   const location = useLocation();
@@ -66,6 +67,7 @@ function AppContent({ isAdmin }) {
           <Route path="/booking/:outboundId/:returnId?" element={<BookingPage />} />
           <Route path="/payment/:bookingId" element={<PaymentPage />} />
           <Route path="/booking-confirmation/:bookingId" element={<BookingConfirmation />} />
+          <Route path="gcash/payment-success" element={<GcashPaymentSuccess />} />
           <Route path="/account/bookings" element={<AccountPage />} />
           <Route path="/profile" element={<UserProfilePage />} />
           <Route path="/support" element={<SupportPage />} />
