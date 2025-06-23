@@ -171,7 +171,7 @@ const PaymentPage = () => {
       );
       console.log(data.actions.checkout_url);
       console.log(`data`, data);
-      window.location.href = data.actions.desktop_web_checkout_url;
+      // window.location.href = data.actions.desktop_web_checkout_url;
     } catch (err) {
       console.error("GCash error:", err.response?.data || err.message);
       toast.error("Failed to create GCash charge.");
