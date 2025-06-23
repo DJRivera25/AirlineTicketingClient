@@ -4,6 +4,32 @@ import axios from "axios";
 import { CreditCard, Wallet, Banknote, ArrowLeft, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { toast } from "react-toastify";
+import locations from "../data/Locations";
+
+const countryToFlagCode = {
+  Philippines: "ph",
+  Japan: "jp",
+  "South Korea": "kr",
+  Singapore: "sg",
+  Thailand: "th",
+  "United Kingdom": "gb",
+  Germany: "de",
+  "United States": "us",
+  Canada: "ca",
+};
+
+const flattenCities = () => {
+  return locations.flatMap((region) =>
+    region.countries.flatMap((country) =>
+      country.cities.map((city) => ({
+        city: city.name,
+        code: city.code,
+        country: country.country,
+        flag: `https://flagcdn.com/24x18/${countryToFlagCode[country.country]}.png`,
+      }))
+    )
+  );
+};
 
 const EXPIRATION_MINUTES = 15; // time before booking expires
 
@@ -171,6 +197,11 @@ const PaymentPage = () => {
     );
 
   const { tripType, departureFlight, returnFlight, passengers, fullName, email, phone, totalPrice } = booking;
+  const cityList = flattenCities();
+  const depOriginCity = cityList.find((c) => departureFlight.from.includes(c.code));
+  const depDestinationCity = cityList.find((c) => departureFlight.to.includes(c.code));
+  const retOriginCity = cityList.find((c) => returnFlight?.from.includes(c.code));
+  const retDestinationCity = cityList.find((c) => returnFlight?.to.includes(c.code));
 
   return (
     <div className="max-w-5xl mx-auto p-8 space-y-12 bg-white rounded-3xl shadow-lg drop-shadow-lg">
@@ -222,8 +253,11 @@ const PaymentPage = () => {
           <div>
             <p className="mb-2 text-violet-700">Departure</p>
             <p className="text-gray-700">
-              {departureFlight?.from} → {departureFlight?.to}
-              <br />
+              <div className="flex gap-2">
+                <img src={depOriginCity.flag} className="w-6 h-auto rounded" /> {departureFlight?.from} →
+                <img src={depDestinationCity.flag} className="w-6 h-auto rounded" />
+                {departureFlight?.to}
+              </div>
               <time dateTime={departureFlight?.departureTime}>
                 {new Date(departureFlight?.departureTime).toLocaleString()}
               </time>{" "}
@@ -237,8 +271,11 @@ const PaymentPage = () => {
             <div>
               <p className="mb-2 text-violet-700">Return</p>
               <p className="text-gray-700">
-                {returnFlight.from} → {returnFlight.to}
-                <br />
+                <div className="flex gap-2">
+                  <img src={retOriginCity.flag} className="w-6 h-auto rounded" /> {returnFlight?.from} →
+                  <img src={retDestinationCity.flag} className="w-6 h-auto rounded" />
+                  {returnFlight?.to}
+                </div>
                 <time dateTime={returnFlight.departureTime}>
                   {new Date(returnFlight.departureTime).toLocaleString()}
                 </time>{" "}

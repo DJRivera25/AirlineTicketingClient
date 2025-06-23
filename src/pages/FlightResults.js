@@ -1,109 +1,78 @@
-import React, { useContext, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import FlightCard from "../components/FlightCard";
-import SearchContext from "../context/FlightSearchContext";
+import axios from "axios";
 
 const FlightResults = () => {
   const navigate = useNavigate();
-  const { searchResults, searchQuery } = useContext(SearchContext);
-
-  const roundTrip = !!searchQuery?.return;
-  const outboundFlights = searchResults?.outbound || [];
-  const returnFlights = searchResults?.return || [];
-
+  const location = useLocation();
+  const [outboundFlights, setOutboundFlights] = useState([]);
+  const [returnFlights, setReturnFlights] = useState([]);
   const [selectedOutbound, setSelectedOutbound] = useState(null);
   const [selectedReturn, setSelectedReturn] = useState(null);
 
-  const goToHomepage = () => navigate("/");
+  // Extract query params from URL
+  const searchParams = new URLSearchParams(location.search);
+  const from = searchParams.get("from");
+  const to = searchParams.get("to");
+  const departure = searchParams.get("departure");
+  const returnDate = searchParams.get("returnDate");
+  const tripType = searchParams.get("tripType");
 
-  const handleSort = (e) => {
-    const sortBy = e.target.value;
-    const sortFunc = (a, b) => {
-      switch (sortBy) {
-        case "price":
-          return a.price - b.price;
-        case "departure":
-          return new Date(a.departureTime) - new Date(b.departureTime);
-        case "duration":
-          const aDuration = new Date(a.arrivalTime) - new Date(a.departureTime);
-          const bDuration = new Date(b.arrivalTime) - new Date(b.departureTime);
-          return aDuration - bDuration;
-        default:
-          return 0;
+  const roundTrip = tripType === "round-trip";
+
+  useEffect(() => {
+    const fetchFlights = async () => {
+      try {
+        const res = await axios.post(`${process.env.REACT_APP_API_BASEURL}/flights/search`, {
+          from,
+          to,
+          departure,
+          return: returnDate,
+          tripType,
+        });
+
+        const results = res.data;
+        setOutboundFlights(results.outbound || []);
+        setReturnFlights(results.return || []);
+      } catch (err) {
+        console.error("Error fetching flight results:", err);
       }
     };
-    outboundFlights.sort(sortFunc);
-    returnFlights.sort(sortFunc);
-  };
+
+    if (from && to && departure) {
+      fetchFlights();
+    }
+  }, [from, to, departure, returnDate, tripType]);
 
   const handleFlightSelect = (flight, type) => {
     if (!roundTrip) {
       navigate(`/flight/${flight._id}/one-way`);
       return;
     }
-    if (type === "outbound") {
-      setSelectedOutbound(flight);
-    } else {
-      setSelectedReturn(flight);
-    }
+
+    if (type === "outbound") setSelectedOutbound(flight);
+    else setSelectedReturn(flight);
   };
 
   const handleContinue = () => {
     navigate("/flight-summary/round-trip", {
-      state: {
-        selectedOutbound,
-        selectedReturn,
-      },
+      state: { selectedOutbound, selectedReturn },
     });
   };
 
   return (
     <div className="px-4 sm:px-6 md:px-8 max-w-screen-xl mx-auto space-y-6 py-6">
-      {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold text-violet-700">Flight Results</h1>
-        <button onClick={goToHomepage} className="text-sm text-violet-600 underline hover:text-violet-800">
+        <button onClick={() => navigate("/")} className="text-sm text-violet-600 underline hover:text-violet-800">
           ← Back to Homepage
         </button>
       </div>
 
-      {/* Sort & Filter */}
-      <div className="bg-white/70 backdrop-blur-2xl border border-violet-200 rounded-3xl shadow-md p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="flex gap-4 flex-wrap items-center">
-          <select className="border rounded-md px-3 py-2 shadow-sm text-sm focus:ring-violet-500 focus:border-violet-500">
-            <option>All Airlines</option>
-            <option>Philippine Airlines</option>
-            <option>Cebu Pacific</option>
-          </select>
-          <select className="border rounded-md px-3 py-2 shadow-sm text-sm focus:ring-violet-500 focus:border-violet-500">
-            <option>All Stops</option>
-            <option>Direct</option>
-            <option>1 Stop</option>
-          </select>
-          <select className="border rounded-md px-3 py-2 shadow-sm text-sm focus:ring-violet-500 focus:border-violet-500">
-            <option>All Classes</option>
-            <option>Economy</option>
-            <option>Business</option>
-          </select>
-        </div>
-
-        <div>
-          <select
-            onChange={handleSort}
-            className="border rounded-md px-3 py-2 shadow-sm text-sm focus:ring-violet-500 focus:border-violet-500"
-          >
-            <option value="">Sort by</option>
-            <option value="price">Price (Low to High)</option>
-            <option value="duration">Duration (Shortest)</option>
-            <option value="departure">Departure Time (Earliest)</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Flight Cards */}
+      {/* Results */}
       {roundTrip ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Outbound Flights */}
           <div className="bg-white/70 backdrop-blur-2xl border border-violet-200 rounded-3xl shadow-md p-6">
             <h2 className="text-xl font-semibold text-violet-700 mb-4 border-b pb-2">Select Outbound Flight</h2>
             {outboundFlights.length > 0 ? (
@@ -120,7 +89,6 @@ const FlightResults = () => {
             )}
           </div>
 
-          {/* Return Flights */}
           <div className="bg-white/70 backdrop-blur-2xl border border-violet-200 rounded-3xl shadow-md p-6">
             <h2 className="text-xl font-semibold text-violet-700 mb-4 border-b pb-2">Select Return Flight</h2>
             {returnFlights.length > 0 ? (
@@ -150,7 +118,6 @@ const FlightResults = () => {
         </div>
       )}
 
-      {/* Continue Button */}
       {roundTrip && selectedOutbound && selectedReturn && (
         <div className="fixed bottom-6 left-0 right-0 flex justify-center z-50">
           <button

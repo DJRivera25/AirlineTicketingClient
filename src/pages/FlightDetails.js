@@ -3,11 +3,36 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Plane, Clock, MapPin, Briefcase, Info, ArrowLeft, ArrowRight } from "lucide-react";
 import SeatMap from "../components/SeatMap";
+import locations from "../data/Locations";
+
+const countryToFlagCode = {
+  Philippines: "ph",
+  Japan: "jp",
+  "South Korea": "kr",
+  Singapore: "sg",
+  Thailand: "th",
+  "United Kingdom": "gb",
+  Germany: "de",
+  "United States": "us",
+  Canada: "ca",
+};
+
+const flattenCities = () => {
+  return locations.flatMap((region) =>
+    region.countries.flatMap((country) =>
+      country.cities.map((city) => ({
+        city: city.name,
+        code: city.code,
+        country: country.country,
+        flag: `https://flagcdn.com/24x18/${countryToFlagCode[country.country]}.png`,
+      }))
+    )
+  );
+};
 
 const FlightDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-
   const [flight, setFlight] = useState(null);
   const [seatMap, setSeatMap] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,21 +41,12 @@ const FlightDetails = () => {
   const goBackToSearch = () => navigate("/flights");
   const continueToBooking = () => navigate(`/booking/${id}`);
 
-  const calculateDuration = (departure, arrival) => {
-    const dep = new Date(departure);
-    const arr = new Date(arrival);
-    const diff = arr - dep;
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    return `${hours}h ${minutes}m`;
-  };
-
   useEffect(() => {
     const fetchFlightDetails = async () => {
       try {
         const res = await axios.get(`${process.env.REACT_APP_API_BASEURL}/flights/${id}`);
         setFlight(res.data);
-      } catch (err) {
+      } catch {
         setError("Unable to load flight details.");
       }
     };
@@ -39,7 +55,7 @@ const FlightDetails = () => {
       try {
         const res = await axios.get(`${process.env.REACT_APP_API_BASEURL}/seats/flight/${id}`);
         setSeatMap(res.data);
-      } catch (err) {
+      } catch {
         setSeatMap([]);
       }
     };
@@ -53,6 +69,10 @@ const FlightDetails = () => {
   if (error) return <p className="text-center text-red-500">{error}</p>;
   if (!flight) return <p className="text-center text-gray-500">Flight not found.</p>;
 
+  const cityList = flattenCities();
+  const depOriginCity = cityList.find((c) => flight.from.includes(c.code));
+  const depDestinationCity = cityList.find((c) => flight.to.includes(c.code));
+
   const {
     flightNumber,
     airline,
@@ -62,33 +82,37 @@ const FlightDetails = () => {
     arrivalTime,
     aircraft = "Airbus A330-300",
     seatCapacity,
+    duration,
   } = flight;
 
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-10">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-4xl font-bold text-violet-700 flex items-center gap-2">
-          <Plane className="w-7 h-7" /> Flight Details
+    <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6 text-sm md:text-base">
+      <div className="flex justify-between items-center mb-2">
+        <h1 className="text-2xl md:text-3xl font-bold text-violet-700 flex items-center gap-2">
+          <Plane className="w-6 h-6" /> Flight Details
         </h1>
         <button
-          className="text-sm flex items-center gap-1 text-violet-600 hover:text-violet-800 underline"
+          className="text-xs md:text-sm flex items-center gap-1 text-violet-600 hover:text-violet-800 underline"
           onClick={goBackToSearch}
         >
-          <ArrowLeft size={16} /> Back to Search
+          <ArrowLeft size={16} /> Back
         </button>
       </div>
 
       {/* Itinerary */}
-      <section className="bg-white p-6 shadow-lg rounded-xl space-y-2 border">
-        <div className="flex items-center gap-2 text-violet-600 font-semibold text-lg">
-          <MapPin size={18} /> Itinerary
+      <section className="bg-white p-4 md:p-5 shadow rounded-lg border space-y-1">
+        <div className="flex items-center gap-2 text-violet-600 font-semibold">
+          <MapPin size={16} /> Itinerary
+        </div>
+        <div className="flex items-center gap-2">
+          <p className="font-medium text-gray-700">{airline}</p>
         </div>
         <p>
-          <strong>Flight:</strong> {airline} {flightNumber}
+          <strong>Flight:</strong> {flightNumber}
         </p>
-        <p>
-          <strong>Route:</strong> {from} → {to}
+        <p className="flex gap-2">
+          <strong>Route:</strong> <img src={depOriginCity.flag} className="w-6 h-auto rounded" /> {from} →
+          <img src={depDestinationCity.flag} className="w-6 h-auto rounded" /> {to}
         </p>
         <p>
           <strong>Departure:</strong> {new Date(departureTime).toLocaleString()}
@@ -96,79 +120,77 @@ const FlightDetails = () => {
         <p>
           <strong>Arrival:</strong> {new Date(arrivalTime).toLocaleString()}
         </p>
-        <p className="text-sm text-gray-700">
-          <Clock className="inline-block w-4 h-4" /> <strong>Duration:</strong>{" "}
-          {calculateDuration(departureTime, arrivalTime)}
+        <p className="text-gray-600 flex items-center gap-1">
+          <Clock size={14} /> <strong>Duration:</strong> {duration}
         </p>
       </section>
 
       {/* Aircraft Info */}
-      <section className="bg-white p-6 shadow-lg rounded-xl border space-y-2">
-        <h2 className="text-lg font-semibold text-violet-600 flex items-center gap-2">
-          <Plane size={18} /> Aircraft Info
+      <section className="bg-white p-4 md:p-5 shadow rounded-lg border space-y-1">
+        <h2 className="font-semibold text-violet-600 flex items-center gap-2">
+          <Plane size={16} /> Aircraft
         </h2>
         <p>
           <strong>Model:</strong> {aircraft}
         </p>
         <p>
-          <strong>Seats Available:</strong> {seatCapacity}
+          <strong>Seats:</strong> {seatCapacity}
         </p>
       </section>
 
       {/* Seat Map */}
-      <section className="bg-white p-6 shadow-lg rounded-xl border space-y-2">
-        <h2 className="text-lg font-semibold text-violet-600 flex items-center gap-2">
-          <MapPin size={18} /> Seat Map Preview
+      <section className="bg-white p-4 md:p-5 shadow rounded-lg border space-y-2">
+        <h2 className="font-semibold text-violet-600 flex items-center gap-2">
+          <MapPin size={16} /> Seat Map
         </h2>
         <SeatMap seats={seatMap} onSeatClick={() => {}} />
       </section>
 
       {/* Baggage Info */}
-      <section className="bg-white p-6 shadow-lg rounded-xl border space-y-2">
-        <div className="flex items-center gap-2 text-violet-600 font-semibold text-lg">
-          <Briefcase size={18} /> Baggage Allowance
+      <section className="bg-white p-4 md:p-5 shadow rounded-lg border">
+        <div className="flex items-center gap-2 text-violet-600 font-semibold">
+          <Briefcase size={16} /> Baggage
         </div>
-        <ul className="list-disc ml-6 space-y-1 text-gray-700">
-          <li>1 carry-on bag (7kg max)</li>
-          <li>1 checked baggage (up to 20kg)</li>
-          <li>Additional baggage fees apply beyond limit</li>
+        <ul className="list-disc ml-5 space-y-1 text-gray-700">
+          <li>1 carry-on (7kg max)</li>
+          <li>1 checked baggage (20kg max)</li>
+          <li>Excess fees may apply</li>
         </ul>
       </section>
 
       {/* Services */}
-      <section className="bg-white p-6 shadow-lg rounded-xl border space-y-2">
-        <div className="flex items-center gap-2 text-violet-600 font-semibold text-lg">
-          <Info size={18} /> In-flight Services
+      <section className="bg-white p-4 md:p-5 shadow rounded-lg border">
+        <div className="flex items-center gap-2 text-violet-600 font-semibold">
+          <Info size={16} /> Services
         </div>
-        <ul className="list-disc ml-6 space-y-1 text-gray-700">
-          <li>Complimentary meals and beverages</li>
-          <li>Wi-Fi (limited availability)</li>
-          <li>Entertainment system with movies/music</li>
-          <li>Power outlets at each seat</li>
+        <ul className="list-disc ml-5 space-y-1 text-gray-700">
+          <li>Complimentary meals</li>
+          <li>Wi-Fi (limited)</li>
+          <li>Entertainment system</li>
+          <li>Power outlets</li>
         </ul>
       </section>
 
       {/* Terms */}
-      <section className="bg-white p-6 shadow-lg rounded-xl border space-y-2">
-        <h2 className="text-lg font-semibold text-violet-600 flex items-center gap-2">
-          <Info size={18} /> Terms & Conditions
+      <section className="bg-white p-4 md:p-5 shadow rounded-lg border">
+        <h2 className="font-semibold text-violet-600 flex items-center gap-2">
+          <Info size={16} /> Terms
         </h2>
-        <ul className="list-disc ml-6 space-y-1 text-sm text-gray-700">
-          <li>Ticket is non-refundable after purchase.</li>
-          <li>Rebooking allowed with applicable fees.</li>
-          <li>Passenger must check in 2 hours before departure.</li>
-          <li>Passport validity must be at least 6 months from travel date.</li>
-          <li>All flight details subject to change without prior notice.</li>
+        <ul className="list-disc ml-5 space-y-1 text-gray-600 text-xs md:text-sm">
+          <li>Non-refundable ticket</li>
+          <li>Rebooking allowed with fees</li>
+          <li>Check-in at least 2 hours early</li>
+          <li>Passport valid 6+ months</li>
+          <li>Subject to change without notice</li>
         </ul>
       </section>
 
-      {/* Continue Button */}
-      <div className="text-right">
+      <div className="text-end">
         <button
           onClick={continueToBooking}
-          className="bg-violet-600 hover:bg-violet-700 text-white px-6 py-3 rounded-full shadow-lg transition flex items-center gap-2"
+          className="bg-violet-600 hover:bg-violet-700 text-white px-6 py-2 rounded-full shadow-md flex items-center gap-2"
         >
-          Continue to Booking <ArrowRight size={16} />
+          Continue <ArrowRight size={16} />
         </button>
       </div>
     </div>

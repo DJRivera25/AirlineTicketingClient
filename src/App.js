@@ -57,7 +57,7 @@ function AppContent({ isAdmin }) {
         <Routes>
           {/* Public/User Routes */}
           <Route path="/" element={<Home />} />
-          <Route path="/flights" element={<FlightResults />} />
+          <Route path="/flight-results" element={<FlightResults />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/google-login" element={<GoogleLogin />} />

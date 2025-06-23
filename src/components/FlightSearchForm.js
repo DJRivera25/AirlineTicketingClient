@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import { Search, PlaneTakeoff, CalendarDays, Repeat } from "lucide-react";
 import CustomDateInput from "./CustomDateInput";
@@ -13,7 +14,8 @@ const getCityLabel = (code) => {
   return city ? `${city.name} (${city.code})` : code;
 };
 
-const FlightSearchForm = ({ form, handleChange, handleSearch }) => {
+const FlightSearchForm = ({ form, handleChange }) => {
+  const navigate = useNavigate();
   const [popoverOpen, setPopoverOpen] = useState(false);
   const popoverRef = useRef(null);
 
@@ -49,6 +51,18 @@ const FlightSearchForm = ({ form, handleChange, handleSearch }) => {
       ? `${formatDate(form.departure)} - ${formatDate(form.return)}`
       : `${formatDate(form.departure)}`;
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const queryParams = new URLSearchParams({
+      from: form.from,
+      to: form.to,
+      departure: form.departure?.toISOString(),
+      returnDate: form.tripType === "round-trip" && form.return ? form.return.toISOString() : "",
+      tripType: form.tripType,
+    });
+    navigate(`/flight-results?${queryParams.toString()}`);
+  };
+
   return (
     <section className="relative z-30 px-4 sm:px-8 md:px-16 max-w-screen-xl mx-auto -mt-24" id="searchFlight">
       <div className="group relative bg-white/70 backdrop-blur-2xl border border-violet-200 rounded-3xl shadow-[0_15px_50px_rgba(88,28,135,0.3)] transition-all duration-500 ease-in-out hover:shadow-[0_20px_80px_rgba(88,28,135,0.5)] hover:scale-[1.01] p-4 sm:p-6 lg:p-8 space-y-6">
@@ -73,7 +87,7 @@ const FlightSearchForm = ({ form, handleChange, handleSearch }) => {
         </div>
 
         {/* Main Form */}
-        <form onSubmit={handleSearch}>
+        <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-12 gap-4 items-end">
             {/* From + To Field */}
             <div className="col-span-12 md:col-span-5 relative" ref={popoverRef}>
@@ -108,7 +122,7 @@ const FlightSearchForm = ({ form, handleChange, handleSearch }) => {
                 <button
                   type="button"
                   onClick={(e) => {
-                    e.stopPropagation(); // Prevent popover toggle
+                    e.stopPropagation();
                     reverseFromTo();
                   }}
                   className="shrink-0 p-1.5 bg-white border border-violet-200 hover:bg-violet-100 rounded-full shadow-sm transition"

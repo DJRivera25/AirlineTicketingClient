@@ -3,6 +3,32 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Briefcase, Clock, Plane, MapPin, Info } from "lucide-react";
 import SeatMap from "../components/SeatMap";
 import axios from "axios";
+import locations from "../data/Locations";
+
+const countryToFlagCode = {
+  Philippines: "ph",
+  Japan: "jp",
+  "South Korea": "kr",
+  Singapore: "sg",
+  Thailand: "th",
+  "United Kingdom": "gb",
+  Germany: "de",
+  "United States": "us",
+  Canada: "ca",
+};
+
+const flattenCities = () => {
+  return locations.flatMap((region) =>
+    region.countries.flatMap((country) =>
+      country.cities.map((city) => ({
+        city: city.name,
+        code: city.code,
+        country: country.country,
+        flag: `https://flagcdn.com/24x18/${countryToFlagCode[country.country]}.png`,
+      }))
+    )
+  );
+};
 
 const RoundTripSummary = () => {
   const { state } = useLocation();
@@ -11,8 +37,6 @@ const RoundTripSummary = () => {
 
   const [outboundSeatNumberMap, setOutboundSeatNumberMap] = useState([]);
   const [returnSeatNumberMap, setReturnSeatNumberMap] = useState([]);
-
-  const formatDate = (datetime) => new Date(datetime).toLocaleString();
 
   const goBackToSearch = () => navigate("/flights");
 
@@ -44,6 +68,13 @@ const RoundTripSummary = () => {
     return <div className="text-center text-gray-500 p-6">Missing flight data. Please go back and select flights.</div>;
   }
 
+  const cityList = flattenCities();
+  const depOriginCity = cityList.find((c) => selectedOutbound.from.includes(c.code));
+  const depDestinationCity = cityList.find((c) => selectedOutbound.to.includes(c.code));
+  const retOriginCity = cityList.find((c) => selectedReturn?.from.includes(c.code));
+  const retDestinationCity = cityList.find((c) => selectedReturn?.to.includes(c.code));
+
+  console.log(depOriginCity);
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -58,7 +89,12 @@ const RoundTripSummary = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-6">
-          <FlightCard flight={selectedOutbound} title="Outbound Flight" />
+          <FlightCard
+            flight={selectedOutbound}
+            depOriginCity={depOriginCity}
+            depDestinationCity={depDestinationCity}
+            title="Outbound Flight"
+          />
           <AircraftCard flight={selectedOutbound} />
           <div className="overflow-x-auto">
             <SeatMap seats={outboundSeatNumberMap} selectedSeatNumbers={[]} onSeatClick={null} />
@@ -66,7 +102,12 @@ const RoundTripSummary = () => {
         </div>
 
         <div className="space-y-6">
-          <FlightCard flight={selectedReturn} title="Return Flight" />
+          <FlightCard
+            flight={selectedReturn}
+            depOriginCity={retOriginCity}
+            depDestinationCity={retDestinationCity}
+            title="Return Flight"
+          />
           <AircraftCard flight={selectedReturn} />
           <div className="overflow-x-auto">
             <SeatMap seats={returnSeatNumberMap} selectedSeatNumbers={[]} onSeatClick={null} />
@@ -120,17 +161,17 @@ const RoundTripSummary = () => {
   );
 };
 
-const FlightCard = ({ flight, title }) => (
+const FlightCard = ({ flight, title, depOriginCity, depDestinationCity }) => (
   <div className="p-6 bg-white rounded-xl shadow border border-violet-200">
     <h2 className="text-violet-800 flex items-center gap-2 text-lg font-semibold">
       <MapPin size={18} /> {title}
     </h2>
     <div className="space-y-1 text-sm mt-2">
-      <div>
-        <strong>From:</strong> {flight.from}
-      </div>
-      <div>
-        <strong>To:</strong> {flight.to}
+      <div className="flex gap-2">
+        <strong>Route:</strong>
+        <img src={depOriginCity.flag} className="w-6 h-auto rounded" /> {flight.from} →
+        <img src={depDestinationCity.flag} className="w-6 h-auto rounded" />
+        {flight.to}
       </div>
       <div>
         <strong>Departure:</strong> {new Date(flight.departureTime).toLocaleString()}
