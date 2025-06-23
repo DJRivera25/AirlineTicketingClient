@@ -158,7 +158,9 @@ const PaymentPage = () => {
 
   const handleGcashPayment = async () => {
     setGcashRedirecting(true);
+
     try {
+      // Step 1: Create GCash charge via Xendit
       const { data } = await axios.post(
         `${process.env.REACT_APP_API_BASEURL}/payments/sandbox/gcash`,
         {
@@ -166,11 +168,37 @@ const PaymentPage = () => {
           email: booking.email,
           phone: booking.phone,
         },
-
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
       );
-      console.log(data.actions.checkout_url);
-      console.log(`data`, data);
+
+      const token = localStorage.getItem("token");
+
+      // Step 2: Record initial payment in DB
+      await axios.post(
+        `${process.env.REACT_APP_API_BASEURL}/payments/record`,
+        {
+          booking: booking._id,
+          method: "gcash",
+          amount: data.charge_amount,
+          currency: data.currency,
+          status: "succeeded",
+          transactionId: data.id,
+          xenditChargeId: data.id,
+          xenditReferenceId: data.reference_id,
+          xenditCheckoutUrl: data.actions?.desktop_web_checkout_url || "",
+          xenditChannelCode: data.channel_code,
+          xenditRedirectSuccessUrl: data.channel_properties?.success_redirect_url,
+          xenditRedirectFailureUrl: data.channel_properties?.failure_redirect_url,
+          paidAt: null, // not yet paid
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      // Step 3: Redirect to GCash Checkout
       window.location.href = data.actions.desktop_web_checkout_url;
     } catch (err) {
       console.error("GCash error:", err.response?.data || err.message);

@@ -15,52 +15,33 @@ const GcashPaymentSuccess = () => {
       if (!refId) return navigate("/unauthorized");
 
       try {
-        const res = await axios.get(`${process.env.REACT_APP_API_BASEURL}/payments/verify-gcash`, {
-          params: { ref_id: refId },
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
+        const token = localStorage.getItem("token");
+
+        // ✅ Just verify the payment
+        const res = await axios.post(
+          `${process.env.REACT_APP_API_BASEURL}/payments/verify-gcash`,
+          { ref_id: refId },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         const { valid, payment, bookingId } = res.data;
 
-        if (valid && payment && bookingId) {
-          setIsValid(true);
-
-          // ✅ Record payment
-          await axios.post(
-            `${process.env.REACT_APP_API_BASEURL}/payments/record`,
-            {
-              booking: bookingId,
-              method: "gcash",
-              amount: payment.amount,
-              currency: payment.currency || "PHP",
-              status: "succeeded",
-              transactionId: payment.transactionId || refId,
-              xenditChargeId: payment.xenditChargeId || refId,
-              xenditReferenceId: payment.xenditReferenceId,
-              xenditCheckoutUrl: payment.xenditCheckoutUrl || "",
-              xenditChannelCode: payment.xenditChannelCode,
-              xenditRedirectSuccessUrl: payment.xenditRedirectSuccessUrl,
-              xenditRedirectFailureUrl: payment.xenditRedirectFailureUrl,
-              paidAt: Date.now(),
-            },
-            {
-              headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-            }
-          );
-
-          // ✅ Mark booking as paid
-          await axios.patch(
-            `${process.env.REACT_APP_API_BASEURL}/bookings/${bookingId}/pay`,
-            {},
-            {
-              headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-            }
-          );
-        } else {
-          navigate("/unauthorized");
+        if (!valid || !payment || !bookingId) {
+          return navigate("/unauthorized");
         }
+
+        // ✅ Then mark booking as paid
+        await axios.patch(
+          `${process.env.REACT_APP_API_BASEURL}/bookings/${bookingId}/pay`,
+          {},
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        setIsValid(true);
       } catch (err) {
         console.error("Verification failed:", err);
         navigate("/unauthorized");
@@ -88,7 +69,7 @@ const GcashPaymentSuccess = () => {
         <h1 className="text-4xl font-extrabold text-violet-800 mb-4">Payment Successful!</h1>
         <p className="text-gray-600 text-lg mb-6">
           Thank you for your payment via <span className="font-semibold text-violet-700">GCash</span>. Your booking is
-          now confirmed and your receipt has been recorded.
+          now confirmed.
         </p>
 
         <div className="flex flex-col sm:flex-row justify-center gap-4">
