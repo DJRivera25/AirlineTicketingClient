@@ -5,27 +5,26 @@ import { CheckCircle } from "lucide-react";
 
 const GcashPaymentSuccess = () => {
   const [searchParams] = useSearchParams();
-  const txId = searchParams.get("tx_id");
+  const refId = searchParams.get("ref_id");
   const navigate = useNavigate();
   const [isValid, setIsValid] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const verifyPayment = async () => {
-      if (!txId) return navigate("/unauthorized");
+      if (!refId) return navigate("/unauthorized");
 
       try {
         const res = await axios.get(`${process.env.REACT_APP_API_BASEURL}/payments/verify-gcash`, {
-          params: { tx_id: txId },
+          params: { ref_id: refId },
         });
 
         const { valid, payment, bookingId } = res.data;
 
         if (valid && payment && bookingId) {
-          // ✅ Mark valid
           setIsValid(true);
 
-          // ✅ Record payment in DB
+          // ✅ Record payment
           await axios.post(
             `${process.env.REACT_APP_API_BASEURL}/payments/record`,
             {
@@ -34,8 +33,8 @@ const GcashPaymentSuccess = () => {
               amount: payment.amount,
               currency: payment.currency || "PHP",
               status: "succeeded",
-              transactionId: payment.transactionId || txId,
-              xenditChargeId: payment.xenditChargeId || txId,
+              transactionId: payment.transactionId || refId,
+              xenditChargeId: payment.xenditChargeId || refId,
               xenditReferenceId: payment.xenditReferenceId,
               xenditCheckoutUrl: payment.xenditCheckoutUrl || "",
               xenditChannelCode: payment.xenditChannelCode,
@@ -68,7 +67,7 @@ const GcashPaymentSuccess = () => {
     };
 
     verifyPayment();
-  }, [txId, navigate]);
+  }, [refId, navigate]);
 
   if (loading)
     return (
@@ -86,7 +85,7 @@ const GcashPaymentSuccess = () => {
         <h1 className="text-4xl font-extrabold text-violet-800 mb-4">Payment Successful!</h1>
         <p className="text-gray-600 text-lg mb-6">
           Thank you for your payment via <span className="font-semibold text-violet-700">GCash</span>. Your booking is
-          now confirmed and a receipt has been recorded.
+          now confirmed and your receipt has been recorded.
         </p>
 
         <div className="flex flex-col sm:flex-row justify-center gap-4">
