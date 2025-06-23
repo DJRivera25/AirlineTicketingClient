@@ -160,7 +160,7 @@ const PaymentPage = () => {
     setGcashRedirecting(true);
     try {
       const { data } = await axios.post(
-        `http://localhost:4000/payments/sandbox/gcash`,
+        `${process.env.REACT_APP_API_BASEURL}/payments/sandbox/gcash`,
         {
           amount: booking.totalPrice,
           email: booking.email,
@@ -171,7 +171,7 @@ const PaymentPage = () => {
       );
       console.log(data.actions.checkout_url);
       console.log(`data`, data);
-      // window.location.href = data.actions.desktop_web_checkout_url;
+      window.location.href = data.actions.desktop_web_checkout_url;
     } catch (err) {
       console.error("GCash error:", err.response?.data || err.message);
       toast.error("Failed to create GCash charge.");
