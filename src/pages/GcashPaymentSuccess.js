@@ -15,9 +15,17 @@ const GcashPaymentSuccess = () => {
       if (!refId) return navigate("/unauthorized");
 
       try {
-        const res = await axios.get(`${process.env.REACT_APP_API_BASEURL}/payments/verify-gcash`, {
-          params: { ref_id: refId },
-        });
+        const res = await axios.get(
+          `${process.env.REACT_APP_API_BASEURL}/payments/verify-gcash`,
+          {
+            params: { ref_id: refId },
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem(`token`)}`,
+            },
+          }
+        );
 
         const { valid, payment, bookingId } = res.data;
 
