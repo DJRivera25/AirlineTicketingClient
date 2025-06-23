@@ -56,8 +56,8 @@ const FlightSearchForm = ({ form, handleChange }) => {
     const queryParams = new URLSearchParams({
       from: form.from,
       to: form.to,
-      departure: form.departure?.toISOString(),
-      returnDate: form.tripType === "round-trip" && form.return ? form.return.toISOString() : "",
+      departure: form.departure?.toISOString() || null,
+      returnDate: form.tripType === "round-trip" && form.return ? form.return?.toISOString() : "" || null,
       tripType: form.tripType,
     });
     navigate(`/flight-results?${queryParams.toString()}`);
