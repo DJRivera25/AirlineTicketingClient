@@ -160,7 +160,7 @@ const PaymentPage = () => {
     setGcashRedirecting(true);
     try {
       const { data } = await axios.post(
-        `${process.env.REACT_APP_API_BASEURL}/payments/sandbox/gcash`,
+        `http://localhost:4000/payments/sandbox/gcash`,
         {
           amount: booking.totalPrice,
           email: booking.email,

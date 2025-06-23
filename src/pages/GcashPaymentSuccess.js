@@ -31,16 +31,16 @@ const GcashPaymentSuccess = () => {
             {
               booking: bookingId,
               method: "gcash",
-              amount: payment.charge_amount / 100,
-              currency: payment.currency,
+              amount: payment.amount,
+              currency: payment.currency || "PHP",
               status: "succeeded",
-              transactionId: payment.id,
-              xenditChargeId: payment.id,
-              xenditReferenceId: payment.reference_id,
-              xenditCheckoutUrl: payment.actions?.desktop_web_checkout_url || "",
-              xenditChannelCode: payment.channel_code,
-              xenditRedirectSuccessUrl: payment.channel_properties?.success_redirect_url,
-              xenditRedirectFailureUrl: payment.channel_properties?.failure_redirect_url,
+              transactionId: payment.transactionId || txId,
+              xenditChargeId: payment.xenditChargeId || txId,
+              xenditReferenceId: payment.xenditReferenceId,
+              xenditCheckoutUrl: payment.xenditCheckoutUrl || "",
+              xenditChannelCode: payment.xenditChannelCode,
+              xenditRedirectSuccessUrl: payment.xenditRedirectSuccessUrl,
+              xenditRedirectFailureUrl: payment.xenditRedirectFailureUrl,
               paidAt: Date.now(),
             },
             {
@@ -70,7 +70,13 @@ const GcashPaymentSuccess = () => {
     verifyPayment();
   }, [txId, navigate]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-xl">Verifying Payment...</div>;
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center text-xl text-violet-600 font-semibold">
+        Verifying your GCash payment...
+      </div>
+    );
+
   if (!isValid) return null;
 
   return (
@@ -80,7 +86,7 @@ const GcashPaymentSuccess = () => {
         <h1 className="text-4xl font-extrabold text-violet-800 mb-4">Payment Successful!</h1>
         <p className="text-gray-600 text-lg mb-6">
           Thank you for your payment via <span className="font-semibold text-violet-700">GCash</span>. Your booking is
-          being processed and a confirmation email will be sent shortly.
+          now confirmed and a receipt has been recorded.
         </p>
 
         <div className="flex flex-col sm:flex-row justify-center gap-4">
