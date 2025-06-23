@@ -17,14 +17,12 @@ const GcashPaymentSuccess = () => {
       try {
         const token = localStorage.getItem("token");
 
-        // ✅ Just verify the payment
-        const res = await axios.post(
-          `${process.env.REACT_APP_API_BASEURL}/payments/verify-gcash`,
-          { ref_id: refId },
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const res = await axios.get(`${process.env.REACT_APP_API_BASEURL}/payments/verify-gcash`, {
+          params: { ref_id: refId },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
 
         const { valid, payment, bookingId } = res.data;
 
