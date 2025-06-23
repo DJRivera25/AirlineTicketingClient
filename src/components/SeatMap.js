@@ -4,6 +4,7 @@ import "tippy.js/dist/tippy.css";
 import { User, CheckCircle, XCircle } from "lucide-react";
 
 const SeatMap = ({ seats, onSeatClick, selectedSeatNumbers = [] }) => {
+  console.log(`onSeatClick`, onSeatClick);
   if (!seats || seats.length === 0) {
     return <p className="text-center text-gray-400 text-sm mt-6">No seats available for this flight.</p>;
   }

@@ -143,7 +143,7 @@ const FlightDetails = () => {
         <h2 className="font-semibold text-violet-600 flex items-center gap-2">
           <MapPin size={16} /> Seat Map
         </h2>
-        <SeatMap seats={seatMap} onSeatClick={() => {}} />
+        <SeatMap seats={seatMap} onSeatClick={null} />
       </section>
 
       {/* Baggage Info */}
