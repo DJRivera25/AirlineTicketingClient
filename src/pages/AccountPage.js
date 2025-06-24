@@ -1,10 +1,36 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { Clipboard } from "lucide-react";
 import axios from "axios";
 import UserContext from "../context/UserContext";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { Timer, BadgeCheck, CreditCard, CalendarDays, ArrowRight, RefreshCcw, Loader, XCircle } from "lucide-react";
+import locations from "../data/Locations";
+
+const countryToFlagCode = {
+  Philippines: "ph",
+  Japan: "jp",
+  "South Korea": "kr",
+  Singapore: "sg",
+  Thailand: "th",
+  "United Kingdom": "gb",
+  Germany: "de",
+  "United States": "us",
+  Canada: "ca",
+};
+
+const flattenCities = () =>
+  locations.flatMap((region) =>
+    region.countries.flatMap((country) =>
+      country.cities.map((city) => ({
+        city: city.name,
+        code: city.code,
+        country: country.country,
+        flag: `https://flagcdn.com/24x18/${countryToFlagCode[country.country]}.png`,
+      }))
+    )
+  );
+
 dayjs.extend(relativeTime);
 
 const TABS = ["pending", "paid", "past"];
@@ -22,7 +48,9 @@ const formatTimeLeft = (departure) => {
 const AccountPage = () => {
   const { user } = useContext(UserContext);
   const [bookings, setBookings] = useState([]);
+  const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [paymentLoading, setPaymentLoading] = useState(true);
   const [error, setError] = useState(null);
   const [tab, setTab] = useState("paid");
   const [seenCounts, setSeenCounts] = useState({});
@@ -42,7 +70,7 @@ const AccountPage = () => {
             },
           }
         );
-        const filtered = res.data.filter((b) => ["pending", "paid", "past"].includes(b.status));
+        const filtered = res.data.filter((b) => TABS.includes(b.status));
         setBookings(filtered);
       } catch (err) {
         setError("Failed to load bookings.");
@@ -54,10 +82,29 @@ const AccountPage = () => {
   }, [user.email]);
 
   useEffect(() => {
+    const fetchPayments = async () => {
+      try {
+        setPaymentLoading(true);
+        const res = await axios.get(`${process.env.REACT_APP_API_BASEURL}/payments`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        setPayments(res.data.payments || []);
+      } catch (err) {
+        console.error("Payment fetch error", err);
+      } finally {
+        setPaymentLoading(false);
+      }
+    };
+    fetchPayments();
+  }, []);
+
+  useEffect(() => {
     const interval = setInterval(() => {
       const updates = {};
       bookings.forEach((b) => {
-        if (b.status === "ongoing" && b.departureFlight) {
+        if (b.status === "paid" && b.departureFlight) {
           updates[b._id] = formatTimeLeft(b.departureFlight.departureTime);
         }
       });
@@ -66,6 +113,7 @@ const AccountPage = () => {
     return () => clearInterval(interval);
   }, [bookings]);
 
+  const getTabCount = (status) => bookings.filter((b) => b.status === status).length;
   const handleTabClick = (t) => {
     setTab(t);
     setSeenCounts((prev) => ({ ...prev, [t]: true }));
@@ -92,70 +140,12 @@ const AccountPage = () => {
     }
   };
 
-  const getTabCount = (status) => bookings.filter((b) => b.status === status).length;
-
-  const renderBooking = (b) => (
-    <div
-      key={b._id}
-      className="bg-gradient-to-tr from-white to-violet-50 shadow-lg border border-violet-200 rounded-2xl p-6 hover:scale-[1.01] transition-transform duration-300 ease-in-out space-y-4"
-    >
-      <div className="flex justify-between items-start">
-        <div>
-          <h3 className="text-xl font-bold text-violet-800 tracking-tight">#{b._id.slice(-6)}</h3>
-          <p className="text-sm text-gray-500 italic">{b.departureFlight?.airline}</p>
-        </div>
-        {b.status === "ongoing" && (
-          <span className="text-sm font-medium text-red-600 animate-pulse bg-red-50 px-2 py-1 rounded">
-            ⏳ {countdown[b._id] || "Calculating..."}
-          </span>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-1 text-sm text-gray-700">
-        <p>
-          🛫 <strong>{b.departureFlight?.from}</strong> → <strong>{b.departureFlight?.to}</strong>
-        </p>
-        <p>📅 Departure: {dayjs(b.departureFlight?.departureTime).format("MMM D, YYYY h:mm A")}</p>
-        {b.returnFlight && <p>🔁 Return: {dayjs(b.returnFlight?.departureTime).format("MMM D, YYYY h:mm A")}</p>}
-        <p className="capitalize col-span-full sm:col-span-1">
-          📌 Status: <span className="font-medium text-violet-600">{b.status}</span>
-        </p>
-      </div>
-
-      <div className="flex flex-wrap gap-3 mt-2">
-        {b.status === "paid" && (
-          <button
-            onClick={() => navigate(`/booking-confirmation/${b._id}`)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 shadow-md text-sm font-semibold"
-          >
-            🧾 View Boarding Pass
-          </button>
-        )}
-        {b.status === "pending" && (
-          <>
-            <button
-              onClick={() => handleAction("Pay", b._id)}
-              className="bg-gradient-to-r from-purple-600 to-violet-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-violet-700 shadow-md text-sm font-semibold"
-            >
-              💳 Pay Now
-            </button>
-            <button
-              onClick={() => handleAction("Cancel", b._id)}
-              className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 shadow-md text-sm font-semibold"
-            >
-              ❌ Cancel
-            </button>
-          </>
-        )}
-      </div>
-    </div>
-  );
-
   const filteredBookings = bookings.filter((b) => b.status === tab);
+
+  const getPaymentForBooking = (bookingId) => payments.find((p) => p.booking?._id === bookingId);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-8">
-      {/* Tabs */}
       <div className="flex justify-around gap-3 text-sm border-b pb-3">
         {TABS.map((t) => {
           const count = getTabCount(t);
@@ -179,80 +169,108 @@ const AccountPage = () => {
         })}
       </div>
 
-      {/* Content */}
       {loading ? (
-        <p className="text-gray-500 animate-pulse">Loading bookings...</p>
+        <p className="text-gray-500 animate-pulse flex items-center gap-2">
+          <Loader className="animate-spin w-4 h-4" />
+          Loading bookings...
+        </p>
       ) : error ? (
         <p className="text-red-500">{error}</p>
       ) : filteredBookings.length === 0 ? (
         <p className="text-gray-400 italic">No {tab} bookings found.</p>
       ) : (
         <div className="space-y-6">
-          {filteredBookings.map((b) => (
-            <div
-              key={b._id}
-              className="bg-white border border-gray-200 shadow-sm rounded-xl p-5 space-y-3 hover:shadow-md transition-all"
-            >
-              <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-violet-700">📄 Booking: {b._id}</h2>
-                {b.status === "ongoing" && (
-                  <span className="text-xs text-red-600 font-semibold">⏳ {countdown[b._id] || "Calculating..."}</span>
-                )}
-              </div>
-
-              <div className="space-y-1 text-sm text-gray-700">
-                <div>
-                  ✈️ <strong>{b.departureFlight?.from}</strong> → <strong>{b.departureFlight?.to}</strong>
+          {filteredBookings.map((b) => {
+            const payment = getPaymentForBooking(b._id);
+            return (
+              <div
+                key={b._id}
+                className="bg-white border border-gray-200 shadow-sm rounded-xl p-5 space-y-3 hover:shadow-md transition-all"
+              >
+                <div className="flex justify-between items-center">
+                  <h2 className="text-lg font-semibold text-violet-700 flex items-center gap-2">
+                    <BadgeCheck className="w-5 h-5" /> Booking: {b._id}
+                  </h2>
+                  {b.status === "paid" && (
+                    <span className="text-xs text-red-600 font-semibold flex items-center gap-1">
+                      <Timer className="w-4 h-4" /> {countdown[b._id] || "Calculating..."}
+                    </span>
+                  )}
                 </div>
-                <div>📆 Departure: {dayjs(b.departureFlight?.departureTime).format("MMM D, YYYY h:mm A")}</div>
-                {b.returnFlight && (
-                  <div>🔁 Return: {dayjs(b.returnFlight?.departureTime).format("MMM D, YYYY h:mm A")}</div>
-                )}
-                <div className="capitalize">
-                  📌 Status:
-                  <span
-                    className={`ml-2 px-2 py-0.5 rounded-full text-xs font-semibold ${
-                      b.status === "paid"
-                        ? "bg-green-100 text-green-700"
-                        : b.status === "pending"
-                        ? "bg-yellow-100 text-yellow-800"
-                        : "bg-gray-200 text-gray-700"
-                    }`}
-                  >
-                    {b.status}
-                  </span>
+
+                <div className="space-y-1 text-sm text-gray-700">
+                  <div className="flex items-center gap-2">
+                    <ArrowRight className="w-4 h-4" />
+                    <strong>{b.departureFlight?.from}</strong> to <strong>{b.departureFlight?.to}</strong>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CalendarDays className="w-4 h-4" />
+                    Departure: {dayjs(b.departureFlight?.departureTime).format("MMM D, YYYY h:mm A")}
+                  </div>
+                  {b.returnFlight && (
+                    <div className="flex items-center gap-2">
+                      <RefreshCcw className="w-4 h-4" />
+                      Return: {dayjs(b.returnFlight?.departureTime).format("MMM D, YYYY h:mm A")}
+                    </div>
+                  )}
+                  <div className="capitalize flex items-center gap-2">
+                    <BadgeCheck className="w-4 h-4" />
+                    Status:{" "}
+                    <span
+                      className={`ml-2 px-2 py-0.5 rounded-full text-xs font-semibold ${
+                        b.status === "paid"
+                          ? "bg-green-100 text-green-700"
+                          : b.status === "pending"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-gray-200 text-gray-700"
+                      }`}
+                    >
+                      {b.status}
+                    </span>
+                  </div>
+                  {b.status === "paid" && payment && (
+                    <>
+                      <div className="flex items-center gap-2 text-sm">
+                        <CreditCard className="w-4 h-4" />
+                        Payment Method: <span className="ml-1 font-medium capitalize">{payment.method}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <CalendarDays className="w-4 h-4" />
+                        Paid On: {dayjs(payment.paidAt).format("MMM D, YYYY h:mm A")}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                  {b.status === "paid" && (
+                    <button
+                      onClick={() => navigate(`/booking-confirmation/${b._id}`)}
+                      className="w-full sm:w-auto bg-violet-500 hover:bg-violet-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm"
+                    >
+                      View Boarding Pass
+                    </button>
+                  )}
+                  {b.status === "pending" && (
+                    <>
+                      <button
+                        onClick={() => handleAction("Pay", b._id)}
+                        className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm"
+                      >
+                        Pay Now
+                      </button>
+                      <button
+                        onClick={() => handleAction("Cancel", b._id)}
+                        className="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm flex items-center gap-1"
+                      >
+                        <XCircle className="w-4 h-4" /> Cancel Booking
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
-
-              {/* Buttons */}
-              <div className="flex flex-col sm:flex-row gap-2 pt-2">
-                {b.status === "paid" && (
-                  <button
-                    onClick={() => navigate(`/booking-confirmation/${b._id}`)}
-                    className="w-full sm:w-auto bg-violet-500 hover:bg-violet-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm"
-                  >
-                    🧾 View Boarding Pass
-                  </button>
-                )}
-                {b.status === "pending" && (
-                  <>
-                    <button
-                      onClick={() => handleAction("Pay", b._id)}
-                      className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm"
-                    >
-                      💳 Pay Now
-                    </button>
-                    <button
-                      onClick={() => handleAction("Cancel", b._id)}
-                      className="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm"
-                    >
-                      ❌ Cancel Booking
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

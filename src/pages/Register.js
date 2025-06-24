@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
+import { Navigate } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
-import { Switch } from "@headlessui/react";
+
+import UserContext from "../context/UserContext";
 
 const GoogleIcon = () => (
   <svg className="w-5 h-5 mr-2" viewBox="0 0 533.5 544.3">
@@ -26,6 +28,7 @@ const GoogleIcon = () => (
 );
 
 const Register = () => {
+  const { user } = useContext(UserContext);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [mobileNo, setMobileNo] = useState("");
@@ -34,6 +37,7 @@ const Register = () => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
+  if (user?.id) return <Navigate to="/" replace />;
   const validate = () => {
     const newErrors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

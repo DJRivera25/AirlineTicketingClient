@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import {
   ArrowRightOnRectangleIcon,
   MapPinIcon,
@@ -16,6 +16,8 @@ import UserContext from "../context/UserContext";
 const UserProfilePage = () => {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
+
+  if (!user.id) return <Navigate to="/login" replace />;
 
   const handleLogout = () => {
     toast.success("Logged out");
@@ -72,12 +74,12 @@ const UserProfilePage = () => {
           <ProfileOption
             label="Saved Addresses"
             icon={<MapPinIcon className="text-violet-600 w-5 h-5" />}
-            onClick={() => navigate("/profile/addresses")}
+            onClick={() => navigate("/account/addresses")}
           />
           <ProfileOption
             label="Payment Methods"
             icon={<CreditCardIcon className="text-violet-600 w-5 h-5" />}
-            onClick={() => navigate("/profile/payments")}
+            onClick={() => navigate("/account/payments")}
           />
           <ProfileOption
             label="Check-In Status"
@@ -87,7 +89,7 @@ const UserProfilePage = () => {
           <ProfileOption
             label="Change Password"
             icon={<LockClosedIcon className="text-violet-600 w-5 h-5" />}
-            onClick={() => navigate("/profile/change-password")}
+            onClick={() => navigate("/account/change-password")}
           />
           <ProfileOption
             label="Logout"

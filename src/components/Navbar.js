@@ -10,18 +10,25 @@ const UserNavbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
   const isHome = location.pathname === "/";
-  const isLoggedIn = !!user?.id;
 
   const handleLogout = () => {
     unsetUser();
     setToken(null);
+    setIsLoggedIn(false);
     navigate("/login");
   };
+
+  useEffect(() => {
+    if (user.id !== null) {
+      setIsLoggedIn(true);
+    }
+  }, [user]);
 
   useEffect(() => {
     const closeDropdown = (e) => {
@@ -141,7 +148,7 @@ const UserNavbar = () => {
                     </NavLink>
                   )}
 
-                  <NavLink to="/profile" className="w-full flex items-center gap-2 px-4 py-3 text-sm hover:bg-gray-100">
+                  <NavLink to="/account" className="w-full flex items-center gap-2 px-4 py-3 text-sm hover:bg-gray-100">
                     <User size={18} /> Profile
                   </NavLink>
 
@@ -200,7 +207,7 @@ const UserNavbar = () => {
             <NavLink to="/account/bookings" onClick={() => setMenuOpen(false)} className="block hover:text-violet-600">
               My Bookings
             </NavLink>
-            <NavLink to="/profile" onClick={() => setMenuOpen(false)} className="block hover:text-violet-600">
+            <NavLink to="/account" onClick={() => setMenuOpen(false)} className="block hover:text-violet-600">
               Profile
             </NavLink>
             <button

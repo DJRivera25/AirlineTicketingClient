@@ -23,7 +23,7 @@ const Footer = () => {
               { path: "/", label: "Home" },
               { path: "/flights", label: "Flights" },
               { path: "/support", label: "Support" },
-              { path: "/profile", label: "My Account" },
+              { path: "/account", label: "My Account" },
             ].map(({ path, label }) => (
               <li key={label}>
                 <Link to={path} className="hover:text-yellow-300 transition-all duration-200">

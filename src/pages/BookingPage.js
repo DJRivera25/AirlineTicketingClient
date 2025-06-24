@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { Loader, PlaneTakeoff, PlaneLanding, AlertTriangle, Users, Mail, Phone, CheckCircle } from "lucide-react";
 import { toast } from "react-toastify";
@@ -9,8 +9,8 @@ import SeatMap from "../components/SeatMap";
 const BookingPage = () => {
   const { user } = useContext(UserContext);
   const { outboundId, returnId } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
-
   const [loading, setLoading] = useState(true);
   const [loginWarning, setLoginWarning] = useState(false);
   const [outboundFlight, setOutboundFlight] = useState(null);
@@ -119,7 +119,11 @@ const BookingPage = () => {
     if (!user.id) {
       setLoginWarning(true);
       toast.warn("Please log in to proceed with booking. Redirecting...");
-      setTimeout(() => navigate(`/login`), 3000);
+      setTimeout(() => {
+        navigate("/login", {
+          state: { from: location.pathname }, // or use location.pathname + location.search if there are params
+        });
+      }, 3000);
       return;
     }
 
@@ -161,6 +165,22 @@ const BookingPage = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-10">
+      {!user?.id && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-red-100 border-t border-red-300 shadow-inner">
+          <div className="max-w-6xl mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center">
+            <p className="text-sm font-medium text-red-800 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5" />
+              You must be logged in to confirm your booking.
+            </p>
+            <button
+              onClick={() => navigate("/login")}
+              className="mt-2 md:mt-0 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded shadow"
+            >
+              Login to Proceed
+            </button>
+          </div>
+        </div>
+      )}
       {/* Flight Summary */}
       <div className="flex flex-col md:flex-row gap-4">
         {outboundFlight && (
@@ -319,12 +339,14 @@ const BookingPage = () => {
       )}
 
       {/* Confirm Button */}
-      <button
-        onClick={handleBooking}
-        className="w-full py-3 text-lg font-semibold text-white rounded-md transition duration-200 bg-gradient-to-r from-violet-600 via-violet-700 to-indigo-800 hover:from-violet-700 hover:to-indigo-900 shadow-md"
-      >
-        Confirm & Proceed
-      </button>
+      {user?.id ? (
+        <button
+          onClick={handleBooking}
+          className="w-full py-3 text-lg font-semibold text-white rounded-md transition duration-200 bg-gradient-to-r from-violet-600 via-violet-700 to-indigo-800 hover:from-violet-700 hover:to-indigo-900 shadow-md"
+        >
+          Confirm & Proceed
+        </button>
+      ) : null}
     </div>
   );
 };

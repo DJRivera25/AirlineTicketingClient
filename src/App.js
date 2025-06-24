@@ -36,7 +36,7 @@ import FullPageLoader from "./pages/FullPageLoader";
 import AdminCalendar from "./pages/AdminCalendar";
 import GcashPaymentSuccess from "./pages/GcashPaymentSuccess";
 
-function AppContent({ isAdmin }) {
+function AppContent({ isAdmin, isLoggedIn }) {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
 
@@ -69,7 +69,7 @@ function AppContent({ isAdmin }) {
           <Route path="/booking-confirmation/:bookingId" element={<BookingConfirmation />} />
           <Route path="gcash/payment-success" element={<GcashPaymentSuccess />} />
           <Route path="/account/bookings" element={<AccountPage />} />
-          <Route path="/profile" element={<UserProfilePage />} />
+          <Route path="/account" element={<UserProfilePage />} />
           <Route path="/support" element={<SupportPage />} />
 
           <Route path="*" element={<NotFound />} />
@@ -90,9 +90,14 @@ function App() {
   const { user } = useContext(UserContext);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
+    console.log(`user:`, user);
     setIsAdmin(!!user?.isAdmin);
+    if (user.id != null) {
+      setIsLoggedIn(true);
+    }
   }, [user]);
 
   // Simulate a loading delay for better UX (especially on hard reload)
@@ -103,7 +108,7 @@ function App() {
 
   return (
     <Router>
-      {loading ? <FullPageLoader /> : <AppContent isAdmin={isAdmin} />}
+      {loading ? <FullPageLoader /> : <AppContent isAdmin={isAdmin} isLoggedIn={isLoggedIn} />}
       <ToastContainer
         position="top-right"
         autoClose={2000}

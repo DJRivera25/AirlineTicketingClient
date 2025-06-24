@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { toast, ToastContainer } from "react-toastify";
+import { useNavigate, useLocation, Navigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import UserContext from "../context/UserContext";
@@ -29,8 +29,10 @@ const GoogleIcon = () => (
 );
 
 const Login = () => {
-  const { unsetUser, setUser, setToken } = useContext(UserContext);
+  const { user, unsetUser, setUser, setToken } = useContext(UserContext);
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from || "/";
   const baseUrl = process.env.REACT_APP_API_BASEURL;
 
   const [email, setEmail] = useState("");
@@ -38,11 +40,7 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    unsetUser();
-    setToken(null);
-  }, []);
-
+  if (user?.id) return <Navigate to="/" replace />;
   const validate = () => {
     const newErrors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -76,7 +74,7 @@ const Login = () => {
       toast.success("Login successful!");
 
       setTimeout(() => {
-        navigate(userRes.data.isAdmin ? "/admin/dashboard" : "/");
+        navigate(userRes.data.isAdmin ? "/admin/dashboard" : from);
       }, 1500);
     } catch (error) {
       // Do not map API error into form fields — just show toast
@@ -93,7 +91,6 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-violet-50 px-4">
-      <ToastContainer />
       <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg space-y-6">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-violet-700">Welcome Back!</h1>

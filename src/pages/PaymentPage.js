@@ -64,7 +64,6 @@ const PaymentPage = () => {
 
   useEffect(() => {
     if (!booking) return;
-
     if (booking?.status === "paid") {
       setStatus("success");
       setTimeout(() => navigate(`/booking-confirmation/${bookingId}`), 3000);
@@ -158,9 +157,7 @@ const PaymentPage = () => {
 
   const handleGcashPayment = async () => {
     setGcashRedirecting(true);
-
     try {
-      // Step 1: Create GCash charge via Xendit
       const { data } = await axios.post(
         `${process.env.REACT_APP_API_BASEURL}/payments/sandbox/gcash`,
         {
@@ -173,9 +170,6 @@ const PaymentPage = () => {
         }
       );
 
-      const token = localStorage.getItem("token");
-
-      // Step 2: Record initial payment in DB
       await axios.post(
         `${process.env.REACT_APP_API_BASEURL}/payments/record`,
         {
@@ -191,14 +185,13 @@ const PaymentPage = () => {
           xenditChannelCode: data.channel_code,
           xenditRedirectSuccessUrl: data.channel_properties?.success_redirect_url,
           xenditRedirectFailureUrl: data.channel_properties?.failure_redirect_url,
-          paidAt: null, // not yet paid
+          paidAt: null,
         },
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
 
-      // Step 3: Redirect to GCash Checkout
       window.location.href = data.actions.desktop_web_checkout_url;
     } catch (err) {
       console.error("GCash error:", err.response?.data || err.message);
@@ -220,39 +213,78 @@ const PaymentPage = () => {
     <div className="max-w-5xl mx-auto p-6 bg-white rounded-3xl shadow-lg space-y-10">
       <h1 className="text-4xl font-bold text-center text-violet-700">Complete Your Payment</h1>
 
-      {/* Timer */}
       <div
-        className={`text-center p-4 rounded-xl font-semibold text-lg ${
-          timeLeft > 0 ? "bg-yellow-100 text-yellow-900" : "bg-red-100 text-red-700"
+        className={`text-center p-4 rounded-xl font-semibold text-lg shadow-inner border ${
+          timeLeft > 0 ? "bg-yellow-50 text-yellow-800 border-yellow-300" : "bg-red-50 text-red-700 border-red-300"
         }`}
       >
         {timeLeft > 0 ? (
           <>
-            ⏳ Time left: <span className="font-mono text-xl">{formatTime(timeLeft)}</span>
+            ⏳ Time left: <span className="font-mono text-2xl">{formatTime(timeLeft)}</span>
           </>
         ) : (
           "⏰ Booking expired. Please book again."
         )}
       </div>
 
-      {/* Booking Summary */}
-      <div className="p-6 bg-violet-50 rounded-xl">
-        <h2 className="text-2xl font-semibold text-violet-800 mb-4">Booking Summary</h2>
-        <p className="text-gray-700 mb-2">Name: {fullName}</p>
-        <p className="text-gray-700 mb-2">Email: {email}</p>
-        <p className="text-gray-700 mb-2">Phone: {phone}</p>
-        <p className="text-gray-700 mb-2">
-          From: {departureFlight.from} → {departureFlight.to}
-        </p>
-        {tripType === "roundtrip" && returnFlight && (
-          <p className="text-gray-700">
-            Return: {returnFlight.from} → {returnFlight.to}
+      <div className="p-6 bg-gradient-to-br from-violet-50 to-white rounded-xl shadow-md">
+        <h2 className="text-2xl font-bold text-violet-700 mb-4 border-b pb-2">Booking Summary</h2>
+        <div className="grid gap-2 text-gray-700">
+          <p>
+            <span className="font-medium">Name:</span> {fullName}
           </p>
-        )}
-        <p className="mt-3 text-lg font-bold">Total: ₱{totalPrice.toLocaleString()}</p>
+          <p>
+            <span className="font-medium">Email:</span> {email}
+          </p>
+          <p>
+            <span className="font-medium">Phone:</span> {phone}
+          </p>
+          <p className="text-gray-700 mb-2 flex items-center gap-2">
+            From:
+            {depFrom && (
+              <>
+                <img src={depFrom.flag} alt={depFrom.country} className="w-5 h-4 rounded-sm shadow-sm" />{" "}
+                <span>
+                  {depFrom.city} ({depFrom.code})
+                </span>
+              </>
+            )}
+            <span className="mx-1">→</span>
+            {depTo && (
+              <>
+                <img src={depTo.flag} alt={depTo.country} className="w-5 h-4 rounded-sm shadow-sm" />{" "}
+                <span>
+                  {depTo.city} ({depTo.code})
+                </span>
+              </>
+            )}
+          </p>
+          {tripType === "roundtrip" && returnFlight && (
+            <p className="text-gray-700 flex items-center gap-2">
+              Return:
+              {retFrom && (
+                <>
+                  <img src={retFrom.flag} alt={retFrom.country} className="w-5 h-4 rounded-sm shadow-sm" />{" "}
+                  <span>
+                    {retFrom.city} ({retFrom.code})
+                  </span>
+                </>
+              )}
+              <span className="mx-1">→</span>
+              {retTo && (
+                <>
+                  <img src={retTo.flag} alt={retTo.country} className="w-5 h-4 rounded-sm shadow-sm" />{" "}
+                  <span>
+                    {retTo.city} ({retTo.code})
+                  </span>
+                </>
+              )}
+            </p>
+          )}
+          <p className="mt-2 text-lg font-bold text-violet-800">Total Price: ₱{totalPrice.toLocaleString()}</p>
+        </div>
       </div>
 
-      {/* Payment Options */}
       <div className="space-y-6 text-center">
         <h2 className="text-2xl font-semibold text-gray-800">Select Payment Method</h2>
         <div className="flex justify-center gap-6 flex-wrap">
@@ -283,7 +315,6 @@ const PaymentPage = () => {
         </div>
       </div>
 
-      {/* Payment Inputs */}
       {paymentMethod === "card" && (
         <div className="max-w-md mx-auto mt-4 border p-4 rounded-lg bg-white shadow-sm">
           <CardElement
@@ -297,7 +328,6 @@ const PaymentPage = () => {
         </div>
       )}
 
-      {/* E-Wallet Button */}
       {paymentMethod === "ewallet" && (
         <div className="text-center">
           <button
@@ -316,7 +346,6 @@ const PaymentPage = () => {
         </div>
       )}
 
-      {/* Action Buttons */}
       <div className="flex justify-between items-center max-w-3xl mx-auto">
         <button
           onClick={() => navigate(-1)}
@@ -328,7 +357,7 @@ const PaymentPage = () => {
           <button
             onClick={handleStripePayment}
             disabled={status === "processing" || status === "success" || timeLeft === 0}
-            className={`px-8 py-3 rounded-lg text-white font-semibold transition ${
+            className={`px-8 py-3 rounded-full text-white font-semibold transition duration-200 shadow-lg ${
               status === "success"
                 ? "bg-green-500"
                 : status === "processing"
@@ -340,7 +369,7 @@ const PaymentPage = () => {
           >
             {status === "processing" ? (
               <>
-                <Loader2 className="animate-spin inline mr-2" /> Processing...
+                <Loader2 className="animate-spin inline w-5 h-5 mr-2" /> Processing...
               </>
             ) : (
               "Pay Now"
@@ -349,15 +378,14 @@ const PaymentPage = () => {
         )}
       </div>
 
-      {/* Status Message */}
       {status === "success" && (
-        <div className="text-green-700 bg-green-100 p-4 rounded-lg text-center mt-6 flex justify-center items-center gap-2">
-          <CheckCircle2 /> Payment Successful! Redirecting...
+        <div className="flex items-center justify-center gap-2 text-green-800 bg-green-100 border border-green-300 rounded-xl px-4 py-3 mt-6 shadow">
+          <CheckCircle2 className="w-5 h-5" /> Payment Successful! Redirecting...
         </div>
       )}
       {status === "failure" && (
-        <div className="text-red-700 bg-red-100 p-4 rounded-lg text-center mt-6 flex justify-center items-center gap-2">
-          <XCircle /> Payment Failed. Try again.
+        <div className="flex items-center justify-center gap-2 text-red-800 bg-red-100 border border-red-300 rounded-xl px-4 py-3 mt-6 shadow">
+          <XCircle className="w-5 h-5" /> Payment Failed. Please try again.
         </div>
       )}
     </div>
