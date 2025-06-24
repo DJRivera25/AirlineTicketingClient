@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Briefcase, Clock, Plane, MapPin, Info } from "lucide-react";
-import SeatMap from "../components/SeatMap";
+
 import axios from "axios";
 import locations from "../data/Locations";
 
@@ -96,9 +96,6 @@ const RoundTripSummary = () => {
             title="Outbound Flight"
           />
           <AircraftCard flight={selectedOutbound} />
-          <div className="overflow-x-auto">
-            <SeatMap seats={outboundSeatNumberMap} selectedSeatNumbers={[]} onSeatClick={null} />
-          </div>
         </div>
 
         <div className="space-y-6">
@@ -109,9 +106,6 @@ const RoundTripSummary = () => {
             title="Return Flight"
           />
           <AircraftCard flight={selectedReturn} />
-          <div className="overflow-x-auto">
-            <SeatMap seats={returnSeatNumberMap} selectedSeatNumbers={[]} onSeatClick={null} />
-          </div>
         </div>
       </div>
 

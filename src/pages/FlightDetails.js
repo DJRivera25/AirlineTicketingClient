@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Plane, Clock, MapPin, Briefcase, Info, ArrowLeft, ArrowRight } from "lucide-react";
-import SeatMap from "../components/SeatMap";
 import locations from "../data/Locations";
 
 const countryToFlagCode = {
@@ -34,7 +33,6 @@ const FlightDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [flight, setFlight] = useState(null);
-  const [seatMap, setSeatMap] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -51,17 +49,7 @@ const FlightDetails = () => {
       }
     };
 
-    const fetchSeatMap = async () => {
-      try {
-        const res = await axios.get(`${process.env.REACT_APP_API_BASEURL}/seats/flight/${id}`);
-        setSeatMap(res.data);
-      } catch {
-        setSeatMap([]);
-      }
-    };
-
     fetchFlightDetails();
-    fetchSeatMap();
     setLoading(false);
   }, [id]);
 
@@ -83,6 +71,7 @@ const FlightDetails = () => {
     aircraft = "Airbus A330-300",
     seatCapacity,
     duration,
+    availableSeats,
   } = flight;
 
   return (
@@ -134,16 +123,8 @@ const FlightDetails = () => {
           <strong>Model:</strong> {aircraft}
         </p>
         <p>
-          <strong>Seats:</strong> {seatCapacity}
+          <strong>Available Seats:</strong> {availableSeats}
         </p>
-      </section>
-
-      {/* Seat Map */}
-      <section className="bg-white p-4 md:p-5 shadow rounded-lg border space-y-2">
-        <h2 className="font-semibold text-violet-600 flex items-center gap-2">
-          <MapPin size={16} /> Seat Map
-        </h2>
-        <SeatMap seats={seatMap} onSeatClick={null} />
       </section>
 
       {/* Baggage Info */}
