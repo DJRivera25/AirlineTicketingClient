@@ -34,11 +34,12 @@ const RoundTripSummary = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
   const { selectedOutbound, selectedReturn } = state || {};
-
+  const location = useLocation();
+  const fromPath = location.state?.fromPath || "/";
   const [outboundSeatNumberMap, setOutboundSeatNumberMap] = useState([]);
   const [returnSeatNumberMap, setReturnSeatNumberMap] = useState([]);
 
-  const goBackToSearch = () => navigate("/flights");
+  const goBackToSearch = () => navigate(fromPath);
 
   const continueToBooking = () => {
     navigate(`/booking/${selectedOutbound._id}/${selectedReturn._id}`);

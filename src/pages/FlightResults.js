@@ -47,7 +47,9 @@ const FlightResults = () => {
 
   const handleFlightSelect = (flight, type) => {
     if (!roundTrip) {
-      navigate(`/flight/${flight._id}/one-way`);
+      navigate(`/flight/${flight._id}/one-way`, {
+        state: { fromPath: location.pathname + location.search },
+      });
       return;
     }
 
@@ -57,7 +59,7 @@ const FlightResults = () => {
 
   const handleContinue = () => {
     navigate("/flight-summary/round-trip", {
-      state: { selectedOutbound, selectedReturn },
+      state: { selectedOutbound, selectedReturn, fromPath: location.pathname + location.search },
     });
   };
 
